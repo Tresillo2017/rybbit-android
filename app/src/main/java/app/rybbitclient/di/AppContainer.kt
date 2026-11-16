@@ -9,6 +9,7 @@ import app.rybbitclient.core.data.DefaultAnalyticsRepository
 import app.rybbitclient.core.data.FeatureAvailability
 import app.rybbitclient.core.data.RybbitApiProvider
 import app.rybbitclient.core.network.HttpClientFactory
+import app.rybbitclient.core.query.SiteQueryState
 import app.rybbitclient.core.storage.DataStoreKeyValueStore
 import app.rybbitclient.core.storage.InstanceRepository
 import app.rybbitclient.core.storage.KeystoreSecretCipher
@@ -41,6 +42,9 @@ class AppContainer(context: Context) {
 
     val analyticsRepository: AnalyticsRepository =
         DefaultAnalyticsRepository(instanceRepository, apiProvider, featureAvailability)
+
+    /** Date range + filters shared across all tabs of the site being viewed. */
+    val siteQueryState: SiteQueryState = SiteQueryState()
 
     /**
      * Removes an instance everywhere it is held: the credential and metadata (via the repository),

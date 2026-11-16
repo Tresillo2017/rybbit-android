@@ -286,3 +286,6 @@ Self-hosted servers answer performance requests with empty percentiles rather th
 * `GET /api/health` (used by `probe`) is not in the OpenAPI document.
 * `KeystoreSecretCipher` has no JVM test; the store logic is tested through a fake cipher.
 * Sites and Settings placeholders have no real instance management yet.
+
+## Shared site query state
+`container.siteQueryState` (`core/query/SiteQueryState.kt`) holds the `AnalyticsQuery` (date range + filters) shared by ALL site tabs. Every analytics ViewModel collects `siteQueryState.query` and reloads on change; the DateRangeBar + FilterChipsRow on any screen write to it via `setRange/addFilter/removeFilter/clearFilters`. Call `onSiteOpened(siteId)` when entering a site (SiteScaffold).
