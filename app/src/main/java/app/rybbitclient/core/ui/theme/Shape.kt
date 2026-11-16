@@ -4,11 +4,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-/** Softer, slightly larger corners than the M3 defaults to suit card-heavy dashboards. */
+/**
+ * Material 3 Expressive corner scale. Rounder than the baseline across the board, with the three
+ * "increased" steps expressive components (cards, toolbars, hero containers) reach for.
+ */
 val RybbitShapes = Shapes(
-    extraSmall = RoundedCornerShape(6.dp),
-    small = RoundedCornerShape(10.dp),
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(22.dp),
-    extraLarge = RoundedCornerShape(28.dp),
+    large = RoundedCornerShape(24.dp),
+    largeIncreased = RoundedCornerShape(28.dp),
+    extraLarge = RoundedCornerShape(32.dp),
+    extraLargeIncreased = RoundedCornerShape(40.dp),
+    extraExtraLarge = RoundedCornerShape(48.dp),
 )

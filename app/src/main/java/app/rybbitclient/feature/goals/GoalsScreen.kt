@@ -11,11 +11,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -116,7 +116,7 @@ private fun GoalsList(
     LaunchedEffect(nearEnd, content.hasMore, content.isLoadingMore, content.loadMoreError) {
         if (nearEnd && content.hasMore && !content.isLoadingMore && content.loadMoreError == null) onLoadMore()
     }
-    PullToRefreshBox(
+    ExpressiveRefreshBox(
         isRefreshing = content.isRefreshing,
         onRefresh = onRefresh,
         modifier = Modifier.fillMaxSize(),
@@ -159,7 +159,7 @@ private fun LoadMoreFooter(content: GoalsUiState.Content, onLoadMore: () -> Unit
             modifier = Modifier.fillMaxWidth().padding(Spacing.lg),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
-        ) { CircularProgressIndicator() }
+        ) { LoadingIndicator() }
         error != null -> Column(
             modifier = Modifier.fillMaxWidth().padding(Spacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally,

@@ -23,6 +23,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import app.rybbitclient.core.ui.haptics.rememberHaptics
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,6 +51,8 @@ private const val FLAT_DELTA_THRESHOLD_PERCENT = 0.05
 private const val TREND_ICON_SIZE_DP = 16
 private const val KPI_MIN_HEIGHT_DP = 104
 private const val SELECTED_BORDER_DP = 2
+private const val RESTING_CORNER_DP = 20
+private const val SELECTED_CORNER_DP = 32
 private const val DELTA_CONTEXT_LABEL = "vs previous period"
 
 /** Visible short form; the full [DELTA_CONTEXT_LABEL] stays in the accessibility description. */
@@ -78,11 +87,32 @@ fun KpiCard(
     compact: Boolean = false,
 ) {
     val colors = MaterialTheme.colorScheme
-    val containerColor = if (selected) colors.primaryContainer.copy(alpha = 0.55f) else colors.surfaceContainerLow
-    val border = if (selected) BorderStroke(SELECTED_BORDER_DP.dp, colors.primary) else null
+    val motion = MaterialTheme.motionScheme
+    // Selection morphs the tile: it rounds up, tints and gains an outline. Colour is an effects
+    // spring (no overshoot); the corner is a spatial spring so it settles with a small bounce.
+    val containerColor by animateColorAsState(
+        targetValue = if (selected) colors.primaryContainer.copy(alpha = 0.55f) else colors.surfaceContainerLow,
+        animationSpec = motion.defaultEffectsSpec(),
+        label = "kpiContainer",
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) colors.primary else Color.Transparent,
+        animationSpec = motion.defaultEffectsSpec(),
+        label = "kpiBorder",
+    )
+    val corner by animateDpAsState(
+        targetValue = if (selected) SELECTED_CORNER_DP.dp else RESTING_CORNER_DP.dp,
+        animationSpec = motion.fastSpatialSpec(),
+        label = "kpiCorner",
+    )
+    val shape = RoundedCornerShape(corner.coerceAtLeast(0.dp))
+    val border = BorderStroke(SELECTED_BORDER_DP.dp, borderColor)
     val description = buildKpiDescription(label, value, deltaPercent)
+    val interactionSource = remember { MutableInteractionSource() }
+    val haptics = rememberHaptics()
     val cardModifier = modifier
         .defaultKpiHeight()
+        .pressScale(interactionSource)
         .semantics(mergeDescendants = true) {
             contentDescription = description
             if (selected) stateDescription = "Selected"
@@ -92,9 +122,19 @@ fun KpiCard(
         KpiContent(label = label, value = value, deltaPercent = deltaPercent, isInverse = isInverse, compact = compact)
     }
     if (onClick != null) {
-        Card(onClick = onClick, modifier = cardModifier, colors = cardColors, border = border) { content() }
+        Card(
+            onClick = {
+                haptics.selection()
+                onClick()
+            },
+            modifier = cardModifier,
+            shape = shape,
+            colors = cardColors,
+            border = border,
+            interactionSource = interactionSource,
+        ) { content() }
     } else {
-        Card(modifier = cardModifier, colors = cardColors, border = border) { content() }
+        Card(modifier = cardModifier, shape = shape, colors = cardColors, border = border) { content() }
     }
 }
 

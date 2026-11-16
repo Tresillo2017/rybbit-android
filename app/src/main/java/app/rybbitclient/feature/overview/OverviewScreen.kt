@@ -1,6 +1,6 @@
 package app.rybbitclient.feature.overview
 
-import androidx.compose.foundation.clickable
+import app.rybbitclient.core.ui.components.hapticClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,7 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -76,7 +76,7 @@ private fun OverviewList(
     viewModel: OverviewViewModel,
     onOpenRealtime: () -> Unit,
 ) {
-    PullToRefreshBox(
+    ExpressiveRefreshBox(
         isRefreshing = state.isRefreshing,
         onRefresh = viewModel::refresh,
         modifier = Modifier.fillMaxSize(),
@@ -136,7 +136,7 @@ private fun LiveRow(state: OverviewUiState, onOpenRealtime: () -> Unit) {
             count = (state.live as? Section.Loaded)?.value,
             modifier = Modifier
                 .minimumInteractiveComponentSize()
-                .clickable(role = Role.Button, onClickLabel = "Open realtime", onClick = onOpenRealtime),
+                .hapticClickable(role = Role.Button, onClickLabel = "Open realtime", onClick = onOpenRealtime),
         )
         Spacer(Modifier.width(Spacing.xs))
         TextButton(

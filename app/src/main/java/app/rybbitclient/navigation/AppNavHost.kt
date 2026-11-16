@@ -21,7 +21,17 @@ fun AppNavHost(
     val container = LocalAppContainer.current
     val navigator = remember(navController) { AppNavigator(navController) }
 
-    NavHost(navController = navController, startDestination = SplashRoute, modifier = modifier) {
+    val transitions = rememberForwardBackTransitions()
+
+    NavHost(
+        navController = navController,
+        startDestination = SplashRoute,
+        modifier = modifier,
+        enterTransition = transitions.enter,
+        exitTransition = transitions.exit,
+        popEnterTransition = transitions.popEnter,
+        popExitTransition = transitions.popExit,
+    ) {
         composable<SplashRoute> {
             StartupRoute(
                 instances = container.instanceRepository.instances,

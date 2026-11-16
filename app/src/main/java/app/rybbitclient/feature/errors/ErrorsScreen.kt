@@ -15,7 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -96,7 +96,7 @@ private fun ErrorsList(
     onRefresh: () -> Unit,
     onOpenError: (String) -> Unit,
 ) {
-    PullToRefreshBox(
+    ExpressiveRefreshBox(
         isRefreshing = content.isRefreshing,
         onRefresh = onRefresh,
         modifier = Modifier.fillMaxSize(),

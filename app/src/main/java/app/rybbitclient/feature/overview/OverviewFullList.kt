@@ -1,6 +1,6 @@
 package app.rybbitclient.feature.overview
 
-import androidx.compose.foundation.clickable
+import app.rybbitclient.core.ui.components.hapticClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,7 +11,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ModalBottomSheet
@@ -104,7 +104,7 @@ private fun LazyListScope.footer(list: FullListState, onLoadMore: () -> Unit) {
         }
         list.isLoadingMore -> item(key = "loading") {
             Box(modifier = Modifier.fillMaxWidth().padding(Spacing.md), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                LoadingIndicator()
             }
         }
         list.rows.isEmpty() -> item(key = "empty") {
@@ -139,6 +139,6 @@ private fun FullListRow(row: MetricRow, parameter: String, onClick: () -> Unit) 
         trailingContent = { Text(countText) },
         modifier = Modifier
             .semantics { contentDescription = "$label, $countText" }
-            .then(if (tappable) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier),
+            .then(if (tappable) Modifier.hapticClickable(role = Role.Button, onClick = onClick) else Modifier),
     )
 }

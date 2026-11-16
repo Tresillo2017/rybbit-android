@@ -11,7 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -98,7 +98,7 @@ private fun EventDetailList(
     onRefresh: () -> Unit,
     onOpenSession: (String) -> Unit,
 ) {
-    PullToRefreshBox(
+    ExpressiveRefreshBox(
         isRefreshing = content.isRefreshing,
         onRefresh = onRefresh,
         modifier = Modifier.fillMaxSize(),

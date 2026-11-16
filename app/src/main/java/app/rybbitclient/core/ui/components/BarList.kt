@@ -3,7 +3,6 @@
 package app.rybbitclient.core.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,7 +78,7 @@ fun BarListRow(
         .fillMaxWidth()
         .heightIn(min = ROW_MIN_HEIGHT_DP.dp)
         .clip(shape)
-        .let { base -> if (onClick != null) base.clickable(onClick = onClick) else base }
+        .let { base -> if (onClick != null) base.hapticClickable(onClick = onClick) else base }
         .semantics(mergeDescendants = true) { contentDescription = description }
 
     Box(modifier = rowModifier) {

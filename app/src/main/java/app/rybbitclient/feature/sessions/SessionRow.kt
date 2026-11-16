@@ -1,6 +1,6 @@
 package app.rybbitclient.feature.sessions
 
-import androidx.compose.foundation.clickable
+import app.rybbitclient.core.ui.components.hapticClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -59,7 +59,7 @@ fun SessionRow(session: SessionSummary, onClick: () -> Unit) {
             }
         },
         trailingContent = { SessionTrailing(session) },
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier.hapticClickable(onClick = onClick),
     )
 }
 

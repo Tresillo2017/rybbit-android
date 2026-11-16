@@ -1,16 +1,14 @@
 package app.rybbitclient.feature.users
 
+import app.rybbitclient.core.ui.components.rememberCollapsingBarBehavior
+import app.rybbitclient.core.ui.components.ExpressiveBackTopBar
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -57,15 +55,14 @@ fun UserDetailScreen(
     }
     val profileState by viewModel.profileState.collectAsStateWithLifecycle()
     val sessionsState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scrollBehavior = rememberCollapsingBarBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(SCREEN_TITLE) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = BACK_DESCRIPTION)
-                    }
-                },
+            ExpressiveBackTopBar(
+                title = SCREEN_TITLE,
+                onBack = onBack,
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { innerPadding ->

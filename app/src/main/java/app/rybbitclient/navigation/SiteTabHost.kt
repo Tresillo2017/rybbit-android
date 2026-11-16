@@ -19,7 +19,16 @@ fun SiteTabHost(
     navigator: AppNavigator,
     modifier: Modifier = Modifier,
 ) {
-    NavHost(navController = tabController, startDestination = OverviewTabRoute, modifier = modifier) {
+    val (fadeIn, fadeOut) = rememberTabFade()
+    NavHost(
+        navController = tabController,
+        startDestination = OverviewTabRoute,
+        modifier = modifier,
+        enterTransition = fadeIn,
+        exitTransition = fadeOut,
+        popEnterTransition = fadeIn,
+        popExitTransition = fadeOut,
+    ) {
         composable<OverviewTabRoute> {
             OverviewScreen(siteId = siteId, onOpenRealtime = { navigator.openRealtime(siteId) })
         }

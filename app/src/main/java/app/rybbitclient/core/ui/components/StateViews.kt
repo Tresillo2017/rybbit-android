@@ -17,12 +17,17 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.toShape
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +44,8 @@ import app.rybbitclient.core.ui.theme.Spacing
 
 private const val SKELETON_ROW_HEIGHT_DP = 56
 private const val SKELETON_CORNER_DP = 12
-private const val ICON_SIZE_DP = 48
+private const val ICON_SIZE_DP = 36
+private const val STATE_ICON_CONTAINER_DP = 88
 private const val RETRY_ICON_SIZE_DP = 18
 private const val MESSAGE_MAX_WIDTH_DP = 360
 private const val LOADING_DESCRIPTION = "Loading"
@@ -76,7 +82,7 @@ fun LoadingView(
                 .semantics { contentDescription = LOADING_DESCRIPTION },
             contentAlignment = Alignment.Center,
         ) {
-            CircularProgressIndicator()
+            LoadingIndicator()
         }
     }
 }
@@ -156,15 +162,10 @@ private fun StateMessage(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.sm),
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = iconTint,
-            modifier = Modifier.size(ICON_SIZE_DP.dp),
-        )
+        StateIcon(icon = icon, tint = iconTint)
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
@@ -178,6 +179,7 @@ private fun StateMessage(
         if (onRetry != null) {
             Button(
                 onClick = onRetry,
+                shapes = ButtonDefaults.shapes(),
                 modifier = Modifier
                     .padding(top = Spacing.xs)
                     .minimumInteractiveComponentSize(),
@@ -190,6 +192,25 @@ private fun StateMessage(
                 Text(text = retryLabel, modifier = Modifier.padding(start = Spacing.xs))
             }
         }
+    }
+}
+
+/** Icon on a soft cookie-shaped tonal container: the expressive "empty state" mark. */
+@Composable
+private fun StateIcon(icon: ImageVector, tint: Color) {
+    Box(
+        modifier = Modifier
+            .size(STATE_ICON_CONTAINER_DP.dp)
+            .clip(MaterialShapes.Cookie9Sided.toShape())
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(ICON_SIZE_DP.dp),
+        )
     }
 }
 

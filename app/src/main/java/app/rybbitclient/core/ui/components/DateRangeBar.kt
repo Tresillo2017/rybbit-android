@@ -16,6 +16,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
+import app.rybbitclient.core.ui.haptics.rememberHaptics
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,6 +61,7 @@ fun DateRangeBar(
     initialEndMillis: Long? = null,
 ) {
     var pickerOpen by remember { mutableStateOf(false) }
+    val haptics = rememberHaptics()
     LazyRow(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = Spacing.screenGutter),
@@ -68,7 +70,10 @@ fun DateRangeBar(
         items(items = options, key = { it.key }) { option ->
             FilterChip(
                 selected = !customSelected && option.key == selectedKey,
-                onClick = { onPresetSelected(option.key) },
+                onClick = {
+                    if (option.key != selectedKey || customSelected) haptics.selection()
+                    onPresetSelected(option.key)
+                },
                 label = { Text(option.label, maxLines = 1) },
                 modifier = Modifier.minimumInteractiveComponentSize(),
             )
@@ -76,7 +81,10 @@ fun DateRangeBar(
         item(key = CUSTOM_CHIP_KEY) {
             FilterChip(
                 selected = customSelected,
-                onClick = { pickerOpen = true },
+                onClick = {
+                    haptics.selection()
+                    pickerOpen = true
+                },
                 label = { Text(customLabel, maxLines = 1) },
                 leadingIcon = {
                     Icon(
@@ -95,6 +103,7 @@ fun DateRangeBar(
             initialEndMillis = initialEndMillis,
             onDismiss = { pickerOpen = false },
             onApply = { start, end ->
+                haptics.confirm()
                 pickerOpen = false
                 onCustomRangeSelected(start, end)
             },

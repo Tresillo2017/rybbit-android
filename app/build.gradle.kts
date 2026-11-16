@@ -13,8 +13,8 @@ android {
         applicationId = "app.rybbitclient"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
     }
 
     buildTypes {
@@ -48,6 +48,13 @@ android {
             // Robolectric + Roborazzi render real Android resources (strings, themes, fonts).
             isIncludeAndroidResources = true
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        // Expressive components are opt-in APIs; enabling once here keeps screens free of per-file annotations.
+        optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
     }
 }
 

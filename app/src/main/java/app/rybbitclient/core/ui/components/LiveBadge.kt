@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import app.rybbitclient.core.ui.motion.rememberAnimationsEnabled
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,9 @@ private const val HALO_MAX_SCALE = 1.0f
 private const val HALO_MIN_SCALE = 0.35f
 private const val HALO_MAX_ALPHA = 0.55f
 private const val BADGE_CORNER_PERCENT = 50
+
+/** Resting halo when animations are off: a faint, steady ring so the badge still reads as "live". */
+private const val STATIC_PULSE = 0.5f
 
 /**
  * "12 online" pill with a pulsing green dot. Pass `null` while the count is loading; it shows a dash.
@@ -74,16 +78,22 @@ fun LiveBadge(
 
 @Composable
 private fun PulsingDot(color: androidx.compose.ui.graphics.Color) {
-    val transition = rememberInfiniteTransition(label = "livePulse")
-    val pulse by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = PULSE_MILLIS, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "livePulseProgress",
-    )
+    val animate = rememberAnimationsEnabled()
+    val pulse = if (animate) {
+        val transition = rememberInfiniteTransition(label = "livePulse")
+        val value by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = PULSE_MILLIS, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "livePulseProgress",
+        )
+        value
+    } else {
+        STATIC_PULSE
+    }
     Box(modifier = Modifier.size(HALO_SIZE_DP.dp), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(HALO_SIZE_DP.dp)) {
             val maxRadius = size.minDimension / 2f

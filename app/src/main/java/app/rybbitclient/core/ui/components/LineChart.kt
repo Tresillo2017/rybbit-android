@@ -1,7 +1,6 @@
 package app.rybbitclient.core.ui.components
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -13,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import app.rybbitclient.core.ui.theme.LocalSmoothCharts
+import app.rybbitclient.core.ui.haptics.rememberHaptics
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,6 @@ import app.rybbitclient.core.ui.theme.Spacing
 import kotlin.math.roundToInt
 
 private const val DEFAULT_CHART_HEIGHT_DP = 220
-private const val ANIMATION_MILLIS = 700
 private const val YAXIS_GUTTER_DP = 48f
 private const val TOP_PADDING_DP = 12f
 private const val RIGHT_PADDING_DP = 12f
@@ -63,7 +63,7 @@ fun LineChart(
     series: List<ChartSeries>,
     modifier: Modifier = Modifier,
     height: Dp = DEFAULT_CHART_HEIGHT_DP.dp,
-    smooth: Boolean = true,
+    smooth: Boolean = LocalSmoothCharts.current,
     summary: String? = null,
     valueFormatter: (Double) -> String = { formatCompactNumber(it) },
     xLabelFormatter: (Int) -> String = { "" },
@@ -105,9 +105,12 @@ private fun PopulatedLineChart(
     val scale = niceYScale(series.maxOf { s -> s.values.maxOrNull() ?: 0.0 })
     val textMeasurer = rememberTextMeasurer()
     val progress = remember { Animatable(0f) }
+    // Effects spring (no overshoot): the line draws in smoothly and a data chart never springs past its values.
+    val drawSpec = MaterialTheme.motionScheme.slowEffectsSpec<Float>()
+    val haptics = rememberHaptics()
     LaunchedEffect(series) {
         progress.snapTo(0f)
-        progress.animateTo(1f, animationSpec = tween(durationMillis = ANIMATION_MILLIS))
+        progress.animateTo(1f, animationSpec = drawSpec)
     }
     var selectedIndex by remember(series) { mutableStateOf<Int?>(null) }
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
@@ -125,6 +128,7 @@ private fun PopulatedLineChart(
                         .indexAt(x, pointCount)
                 }
                 scrubGestures(indexAt) { index ->
+                    if (index != null && index != selectedIndex) haptics.scrubTick()
                     selectedIndex = index
                     onPointSelected?.invoke(index)
                 }

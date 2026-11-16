@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -73,7 +73,7 @@ fun FunnelDetailScreen(
 private fun FunnelDetailBody(content: FunnelDetailUiState.Content, onRefresh: () -> Unit) {
     val analysis = content.analysis
     val summary = funnelSummary(analysis)
-    PullToRefreshBox(
+    ExpressiveRefreshBox(
         isRefreshing = content.isRefreshing,
         onRefresh = onRefresh,
         modifier = Modifier.fillMaxSize(),

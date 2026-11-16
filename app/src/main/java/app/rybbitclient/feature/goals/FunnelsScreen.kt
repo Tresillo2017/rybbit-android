@@ -1,6 +1,6 @@
 package app.rybbitclient.feature.goals
 
-import androidx.compose.foundation.clickable
+import app.rybbitclient.core.ui.components.hapticClickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,7 +12,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -76,7 +76,7 @@ private fun FunnelsList(
     onOpenFunnel: (Int) -> Unit,
     modifier: Modifier,
 ) {
-    PullToRefreshBox(
+    ExpressiveRefreshBox(
         isRefreshing = content.isRefreshing,
         onRefresh = onRefresh,
         modifier = modifier.fillMaxSize(),
@@ -98,7 +98,7 @@ private fun FunnelRow(funnel: Funnel, onClick: () -> Unit) {
         headlineContent = { Text(funnel.name) },
         supportingContent = { Text(funnelSupportingText(funnel)) },
         leadingContent = { Icon(Icons.Outlined.FilterAlt, contentDescription = null) },
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier.hapticClickable(onClick = onClick),
     )
 }
 

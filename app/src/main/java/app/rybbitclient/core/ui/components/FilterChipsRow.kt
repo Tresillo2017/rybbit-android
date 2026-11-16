@@ -15,6 +15,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import app.rybbitclient.core.ui.haptics.rememberHaptics
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -41,6 +42,7 @@ fun FilterChipsRow(
     modifier: Modifier = Modifier,
 ) {
     if (filters.isEmpty()) return
+    val haptics = rememberHaptics()
     LazyRow(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = Spacing.screenGutter),
@@ -50,7 +52,10 @@ fun FilterChipsRow(
         items(items = filters, key = { it.key }) { filter ->
             InputChip(
                 selected = true,
-                onClick = { onRemove(filter.key) },
+                onClick = {
+                    haptics.toggle(isOn = false)
+                    onRemove(filter.key)
+                },
                 label = { Text(filter.label, maxLines = 1) },
                 trailingIcon = {
                     Icon(
@@ -66,7 +71,10 @@ fun FilterChipsRow(
         }
         item(key = CLEAR_ALL_KEY) {
             TextButton(
-                onClick = onClearAll,
+                onClick = {
+                    haptics.toggle(isOn = false)
+                    onClearAll()
+                },
                 modifier = Modifier.minimumInteractiveComponentSize(),
             ) {
                 Text(

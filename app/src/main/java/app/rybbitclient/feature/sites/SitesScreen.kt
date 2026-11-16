@@ -1,15 +1,16 @@
 package app.rybbitclient.feature.sites
 
+import app.rybbitclient.core.ui.components.hapticClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Search
@@ -17,18 +18,23 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.MediumFlexibleTopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import app.rybbitclient.core.ui.haptics.rememberHaptics
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import app.rybbitclient.core.ui.components.rememberCollapsingBarBehavior
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,9 +76,12 @@ fun SitesScreen(
         viewModel.autoOpenSite.collect { site -> currentOnSiteSelected(site.analyticsId, site.name) }
     }
 
+    val scrollBehavior = rememberCollapsingBarBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SitesTopBar(
+                scrollBehavior = scrollBehavior,
                 switcher = switcher,
                 onSelectInstance = viewModel::selectInstance,
                 onAddInstance = onAddInstance,
@@ -137,12 +146,15 @@ private fun SitesContent(
     onRefresh: () -> Unit,
     onSiteTapped: (SiteItem) -> Unit,
 ) {
-    PullToRefreshBox(
+    ExpressiveRefreshBox(
         isRefreshing = state.isRefreshing,
         onRefresh = onRefresh,
         modifier = modifier,
     ) {
-        LazyColumn(contentPadding = PaddingValues(bottom = Spacing.lg)) {
+        LazyColumn(
+            contentPadding = PaddingValues(bottom = Spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+        ) {
             if (state.showSearch) {
                 item(key = "search") {
                     SiteSearchField(query = state.query, onQueryChanged = onQueryChanged)
@@ -168,8 +180,14 @@ private fun LazyListScope.sitesSections(state: SitesUiState.Content, onSiteTappe
         }
         else -> state.visibleOrganizations.forEach { group ->
             stickyHeader(key = "org-${group.id}") { OrganizationHeader(group.name) }
-            items(group.sites, key = { "site-${it.analyticsId}" }) { site ->
-                SiteRow(site = site, liveCount = state.liveCounts[site.analyticsId], onClick = { onSiteTapped(site) })
+            itemsIndexed(group.sites, key = { _, site -> "site-${site.analyticsId}" }) { index, site ->
+                SiteRow(
+                    site = site,
+                    liveCount = state.liveCounts[site.analyticsId],
+                    index = index,
+                    count = group.sites.size,
+                    onClick = { onSiteTapped(site) },
+                )
             }
         }
     }
@@ -192,15 +210,23 @@ private fun OrganizationHeader(name: String) {
 }
 
 @Composable
-private fun SiteRow(site: SiteItem, liveCount: Int?, onClick: () -> Unit) {
+private fun SiteRow(site: SiteItem, liveCount: Int?, index: Int, count: Int, onClick: () -> Unit) {
     val domain = site.domain
-    ListItem(
-        headlineContent = { Text(site.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        supportingContent = { if (domain != null) Text(domain, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+    val haptics = rememberHaptics()
+    SegmentedListItem(
+        onClick = {
+            haptics.click()
+            onClick()
+        },
+        shapes = ListItemDefaults.segmentedShapes(index = index, count = count),
+        colors = ListItemDefaults.segmentedColors(),
         leadingContent = { SiteAvatar(site.name) },
         trailingContent = { if (liveCount != null) LiveBadge(count = liveCount) },
-        modifier = Modifier.clickable(onClick = onClick),
-    )
+        supportingContent = { if (domain != null) Text(domain, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        modifier = Modifier.padding(horizontal = Spacing.screenGutter),
+    ) {
+        Text(site.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
 }
 
 @Composable
@@ -227,12 +253,14 @@ private fun SiteSearchField(query: String, onQueryChanged: (String) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SitesTopBar(
+    scrollBehavior: TopAppBarScrollBehavior,
     switcher: InstanceSwitcherState,
     onSelectInstance: (String) -> Unit,
     onAddInstance: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-    TopAppBar(
+    MediumFlexibleTopAppBar(
+        scrollBehavior = scrollBehavior,
         title = {
             InstanceSwitcher(switcher = switcher, onSelectInstance = onSelectInstance, onAddInstance = onAddInstance)
         },

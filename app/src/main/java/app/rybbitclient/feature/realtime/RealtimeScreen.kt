@@ -1,6 +1,9 @@
 package app.rybbitclient.feature.realtime
 
-import androidx.compose.foundation.clickable
+import app.rybbitclient.core.ui.components.hapticClickable
+import app.rybbitclient.core.ui.components.rememberCollapsingBarBehavior
+import app.rybbitclient.core.ui.components.ExpressiveBackTopBar
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,17 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -75,15 +73,14 @@ fun RealtimeScreen(
         viewModel.startPolling()
         onStopOrDispose { viewModel.stopPolling() }
     }
+    val scrollBehavior = rememberCollapsingBarBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text("Realtime") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
+            ExpressiveBackTopBar(
+                title = "Realtime",
+                onBack = onBack,
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { padding ->
@@ -115,7 +112,7 @@ private fun RealtimeBody(
                 onRetry = onRefresh,
             )
         }
-        else -> PullToRefreshBox(
+        else -> ExpressiveRefreshBox(
             isRefreshing = state.isRefreshing,
             onRefresh = onRefresh,
             modifier = modifier.fillMaxSize(),
@@ -222,7 +219,7 @@ private fun FeedItem(row: FeedRow, onOpenSession: (String) -> Unit) {
         supportingContent = { Text(supporting, maxLines = 1) },
         modifier = Modifier.then(
             if (sessionId != null) {
-                Modifier.clickable(role = Role.Button, onClick = { onOpenSession(sessionId) })
+                Modifier.hapticClickable(role = Role.Button, onClick = { onOpenSession(sessionId) })
             } else {
                 Modifier
             },

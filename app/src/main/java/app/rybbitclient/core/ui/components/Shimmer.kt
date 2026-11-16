@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import app.rybbitclient.core.ui.motion.rememberAnimationsEnabled
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +28,8 @@ private const val SHIMMER_SWEEP_MILLIS = 1_400
 fun Modifier.shimmerPlaceholder(shape: Shape): Modifier {
     val base = MaterialTheme.colorScheme.surfaceVariant
     val highlight = MaterialTheme.colorScheme.surface
+    // With "Remove animations" on, the loop must not run: show the flat base colour instead.
+    if (!rememberAnimationsEnabled()) return this.clip(shape).background(base)
     val transition = rememberInfiniteTransition(label = "shimmer")
     val progress by transition.animateFloat(
         initialValue = 0f,

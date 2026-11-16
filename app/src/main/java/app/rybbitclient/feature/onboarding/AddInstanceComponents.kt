@@ -1,5 +1,7 @@
 package app.rybbitclient.feature.onboarding
 
+import app.rybbitclient.core.ui.haptics.rememberHaptics
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -46,6 +49,14 @@ fun ServerCheckRow(
     onCheck: () -> Unit,
 ) {
     val canCheck = state.baseUrl != null && !state.isSubmitting && state.serverCheck != ServerCheck.Checking
+    val haptics = rememberHaptics()
+    LaunchedEffect(state.serverCheck) {
+        when (state.serverCheck) {
+            ServerCheck.Reachable -> haptics.confirm()
+            ServerCheck.Failed -> haptics.reject()
+            else -> Unit
+        }
+    }
     Row(
         modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
         verticalAlignment = Alignment.CenterVertically,
@@ -53,6 +64,7 @@ fun ServerCheckRow(
         OutlinedButton(
             onClick = onCheck,
             enabled = canCheck,
+            shapes = ButtonDefaults.shapes(),
             modifier = Modifier.minimumInteractiveComponentSize(),
         ) {
             Text("Check server")

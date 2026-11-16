@@ -1,11 +1,13 @@
 package app.rybbitclient.feature.more
 
-import androidx.compose.foundation.clickable
+import app.rybbitclient.core.ui.components.hapticClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.FilterAlt
@@ -15,8 +17,9 @@ import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.SegmentedListItem
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.rybbitclient.core.ui.components.ErrorView
 import app.rybbitclient.core.ui.components.LoadingView
+import app.rybbitclient.core.ui.haptics.rememberHaptics
 import app.rybbitclient.core.ui.theme.Spacing
 import app.rybbitclient.di.LocalAppContainer
 import app.rybbitclient.feature.common.toErrorCopy
@@ -77,13 +81,18 @@ fun MoreScreen(
                 onOpenRealtime = onOpenRealtime,
                 onOpenWebVitals = onOpenWebVitals,
             )
-            PullToRefreshBox(
+            ExpressiveRefreshBox(
                 isRefreshing = current.isRefreshing,
                 onRefresh = viewModel::refresh,
                 modifier = Modifier.fillMaxSize(),
             ) {
-                LazyColumn(contentPadding = PaddingValues(vertical = Spacing.sm)) {
-                    items(links, key = { it.label }) { link -> MoreRow(link) }
+                LazyColumn(
+                    contentPadding = PaddingValues(vertical = Spacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                ) {
+                    itemsIndexed(links, key = { _, link -> link.label }) { index, link ->
+                        MoreRow(link = link, index = index, count = links.size)
+                    }
                 }
             }
         }
@@ -124,11 +133,19 @@ private fun funnelSummary(count: Int): String = when (count) {
 }
 
 @Composable
-private fun MoreRow(link: MoreLink) {
-    ListItem(
-        headlineContent = { Text(link.label) },
-        supportingContent = { Text(link.supporting) },
+private fun MoreRow(link: MoreLink, index: Int, count: Int) {
+    val haptics = rememberHaptics()
+    SegmentedListItem(
+        onClick = {
+            haptics.click()
+            link.onClick()
+        },
+        shapes = ListItemDefaults.segmentedShapes(index = index, count = count),
+        colors = ListItemDefaults.segmentedColors(),
         leadingContent = { Icon(link.icon, contentDescription = null) },
-        modifier = Modifier.clickable(onClick = link.onClick),
-    )
+        supportingContent = { Text(link.supporting) },
+        modifier = Modifier.padding(horizontal = Spacing.screenGutter),
+    ) {
+        Text(link.label)
+    }
 }

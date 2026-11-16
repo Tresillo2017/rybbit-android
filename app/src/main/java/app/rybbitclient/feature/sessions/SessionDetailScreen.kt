@@ -1,5 +1,8 @@
 package app.rybbitclient.feature.sessions
 
+import app.rybbitclient.core.ui.components.rememberCollapsingBarBehavior
+import app.rybbitclient.core.ui.components.ExpressiveBackTopBar
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
@@ -17,17 +20,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -86,15 +84,14 @@ fun SessionDetailScreen(
         SessionDetailViewModel(siteId, sessionId, container.analyticsRepository)
     }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val scrollBehavior = rememberCollapsingBarBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(SCREEN_TITLE) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = BACK_DESCRIPTION)
-                    }
-                },
+            ExpressiveBackTopBar(
+                title = SCREEN_TITLE,
+                onBack = onBack,
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { innerPadding ->
@@ -126,7 +123,7 @@ private fun SessionDetailBody(
             ErrorView(title = copy.title, message = copy.message, modifier = modifier, onRetry = onRefresh)
         }
         SessionDetailUiState.Unavailable -> UnavailableView(modifier = modifier)
-        is SessionDetailUiState.Content -> PullToRefreshBox(
+        is SessionDetailUiState.Content -> ExpressiveRefreshBox(
             isRefreshing = state.isRefreshing,
             onRefresh = onRefresh,
             modifier = modifier,

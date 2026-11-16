@@ -8,6 +8,9 @@ import androidx.compose.ui.graphics.Color
 /** Brand seed color (emerald). Hand-tuned schemes below are derived from this family. */
 val RybbitBrandSeed = Color(0xFF10B981)
 
+/** Hue of the brand emerald, used to tint the neutral surfaces of the brand scheme. */
+private const val BRAND_HUE = 160f
+
 private val LightPrimary = Color(0xFF047857)
 private val LightOnPrimary = Color(0xFFFFFFFF)
 private val LightPrimaryContainer = Color(0xFFA7F3D0)
@@ -93,7 +96,7 @@ val RybbitLightScheme: ColorScheme = lightColorScheme(
     inverseSurface = LightInverseSurface,
     inverseOnSurface = LightInverseOnSurface,
     inversePrimary = LightInversePrimary,
-)
+).withTintedSurfaces(hue = BRAND_HUE, dark = false)
 
 /** Fallback dark scheme used when dynamic color is unavailable or disabled. */
 val RybbitDarkScheme: ColorScheme = darkColorScheme(
@@ -124,4 +127,4 @@ val RybbitDarkScheme: ColorScheme = darkColorScheme(
     inverseSurface = DarkInverseSurface,
     inverseOnSurface = DarkInverseOnSurface,
     inversePrimary = DarkInversePrimary,
-)
+).withTintedSurfaces(hue = BRAND_HUE, dark = true)

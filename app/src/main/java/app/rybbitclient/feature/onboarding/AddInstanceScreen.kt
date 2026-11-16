@@ -1,5 +1,8 @@
 package app.rybbitclient.feature.onboarding
 
+import app.rybbitclient.core.ui.components.rememberCollapsingBarBehavior
+import app.rybbitclient.core.ui.components.ExpressiveBackTopBar
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,19 +15,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +43,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.rybbitclient.core.ui.haptics.rememberHaptics
 import app.rybbitclient.core.ui.theme.Spacing
 import app.rybbitclient.di.LocalAppContainer
 
@@ -72,17 +72,23 @@ fun AddInstanceScreen(
         )
     }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(viewModel) { viewModel.completed.collect { onInstanceAdded() } }
+    val haptics = rememberHaptics()
+    LaunchedEffect(viewModel) {
+        viewModel.completed.collect {
+            haptics.confirm()
+            onInstanceAdded()
+        }
+    }
+    LaunchedEffect(state.formError) { if (state.formError != null) haptics.reject() }
 
+    val scrollBehavior = rememberCollapsingBarBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(if (isCloud) "Rybbit Cloud" else "Add server") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
+            ExpressiveBackTopBar(
+                title = if (isCloud) "Rybbit Cloud" else "Add server",
+                onBack = onBack,
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { padding ->
@@ -254,6 +260,7 @@ private fun SubmitButton(state: AddInstanceUiState, onSubmit: () -> Unit) {
     Button(
         onClick = onSubmit,
         enabled = !state.isSubmitting,
+        shapes = ButtonDefaults.shapes(),
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = Spacing.minTouchTarget),

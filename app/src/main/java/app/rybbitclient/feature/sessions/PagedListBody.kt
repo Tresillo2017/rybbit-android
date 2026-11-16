@@ -16,7 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import app.rybbitclient.core.ui.components.ExpressiveRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,7 +60,7 @@ fun <T : Any> PagedListBody(
     val listState = rememberLazyListState()
     val content = state as? PagedUiState.Content<T>
     listState.OnNearEnd(enabled = content?.canLoadMore() == true, onNearEnd = onLoadMore)
-    PullToRefreshBox(
+    ExpressiveRefreshBox(
         isRefreshing = content?.isRefreshing == true,
         onRefresh = onRefresh,
         modifier = modifier.fillMaxSize(),

@@ -1,6 +1,6 @@
 package app.rybbitclient.feature.events
 
-import androidx.compose.foundation.clickable
+import app.rybbitclient.core.ui.components.hapticClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,7 +44,7 @@ fun EventRow(
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val clickModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+    val clickModifier = if (onClick != null) Modifier.hapticClickable(onClick = onClick) else Modifier
     Column(
         modifier = modifier
             .fillMaxWidth()

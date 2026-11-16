@@ -10,6 +10,7 @@ import app.rybbitclient.core.data.FeatureAvailability
 import app.rybbitclient.core.data.RybbitApiProvider
 import app.rybbitclient.core.network.HttpClientFactory
 import app.rybbitclient.core.query.SiteQueryState
+import app.rybbitclient.core.storage.AppPreferences
 import app.rybbitclient.core.storage.DataStoreKeyValueStore
 import app.rybbitclient.core.storage.InstanceRepository
 import app.rybbitclient.core.storage.KeystoreSecretCipher
@@ -33,6 +34,9 @@ class AppContainer(context: Context) {
             store = DataStoreKeyValueStore(context.applicationContext.rybbitSecretsStore),
         ),
     )
+
+    val appPreferences: AppPreferences =
+        AppPreferences(DataStoreKeyValueStore(context.applicationContext.rybbitPreferencesStore))
 
     val authService: AuthService = AuthService(httpClientFactory, deviceModel = Build.MODEL)
 

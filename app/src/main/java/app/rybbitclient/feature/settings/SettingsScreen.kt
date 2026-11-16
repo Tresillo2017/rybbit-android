@@ -1,22 +1,31 @@
 package app.rybbitclient.feature.settings
 
-import androidx.compose.foundation.clickable
+import app.rybbitclient.core.storage.ThemeMode
+import app.rybbitclient.core.storage.AppSettings
+import app.rybbitclient.core.storage.AppPreferences
+import app.rybbitclient.core.storage.AccentColor
+import kotlinx.coroutines.CoroutineScope
+import androidx.compose.foundation.isSystemInDarkTheme
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import android.os.Build
+import app.rybbitclient.core.ui.components.hapticClickable
+import app.rybbitclient.core.ui.components.rememberCollapsingBarBehavior
+import app.rybbitclient.core.ui.components.ExpressiveBackTopBar
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,15 +83,14 @@ fun SettingsScreen(
     val currentOnAllRemoved by rememberUpdatedState(onAllInstancesRemoved)
     LaunchedEffect(viewModel) { viewModel.allInstancesRemoved.collect { currentOnAllRemoved() } }
 
+    val scrollBehavior = rememberCollapsingBarBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text("Settings") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
+            ExpressiveBackTopBar(
+                title = "Settings",
+                onBack = onBack,
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { padding ->
@@ -103,6 +111,15 @@ private fun SettingsList(
     onActiveInstanceChanged: () -> Unit,
 ) {
     var dialog by remember { mutableStateOf<ServerDialog?>(null) }
+    val preferences = LocalAppContainer.current.appPreferences
+    val scope = rememberCoroutineScope()
+    val settings by preferences.settings.collectAsStateWithLifecycle(initialValue = AppSettings())
+    val actions = remember(preferences, scope) { SettingsActions(preferences, scope) }
+    val isDark = when (settings.themeMode) {
+        ThemeMode.System -> isSystemInDarkTheme()
+        ThemeMode.Light -> false
+        ThemeMode.Dark -> true
+    }
     LazyColumn(modifier = modifier) {
         serverSection(
             state,
@@ -115,9 +132,12 @@ private fun SettingsList(
                 headlineContent = { Text("Add server") },
                 supportingContent = { Text("Connect to Rybbit Cloud or another server") },
                 leadingContent = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                modifier = Modifier.clickable(enabled = !state.isWorking, onClick = onAddInstance),
+                modifier = Modifier.hapticClickable(enabled = !state.isWorking, onClick = onAddInstance),
             )
         }
+        appearanceSection(settings, isDark, actions)
+        dashboardSection(settings, actions)
+        feedbackSection(settings, actions)
         aboutSection()
     }
     ServerDialogHost(
@@ -184,6 +204,88 @@ private fun LazyListScope.serverSection(
             onRemove = { onAction(ServerDialog.Remove(instance)) },
         )
     }
+}
+
+private fun LazyListScope.appearanceSection(settings: AppSettings, isDark: Boolean, actions: SettingsActions) {
+    item(key = "appearance-header") { SectionHeader("Appearance") }
+    item(key = "appearance-theme") { ThemeModeRow(settings.themeMode, actions::setThemeMode) }
+    val supportsDynamic = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    if (supportsDynamic) {
+        item(key = "appearance-dynamic") {
+            SettingsSwitchRow(
+                title = "Dynamic color",
+                supporting = "Match the colors of your wallpaper",
+                checked = settings.dynamicColor,
+                onCheckedChange = actions::setDynamicColor,
+            )
+        }
+    }
+    item(key = "appearance-accent") {
+        AccentPickerRow(
+            selected = settings.accent,
+            enabled = !(supportsDynamic && settings.dynamicColor),
+            isDark = isDark,
+            onSelect = actions::setAccent,
+        )
+    }
+    item(key = "appearance-black") {
+        SettingsSwitchRow(
+            title = "Pure black",
+            supporting = "True black backgrounds in dark theme, easier on OLED screens",
+            checked = settings.pureBlack,
+            onCheckedChange = actions::setPureBlack,
+        )
+    }
+}
+
+private fun LazyListScope.dashboardSection(settings: AppSettings, actions: SettingsActions) {
+    item(key = "dashboard-header") { SectionHeader("Dashboard") }
+    item(key = "dashboard-range") { DefaultRangeRow(settings.defaultRangeKey, actions::setDefaultRange) }
+    item(key = "dashboard-smooth") {
+        SettingsSwitchRow(
+            title = "Smooth chart lines",
+            supporting = "Curved lines instead of straight segments between points",
+            checked = settings.smoothCharts,
+            onCheckedChange = actions::setSmoothCharts,
+        )
+    }
+}
+
+private fun LazyListScope.feedbackSection(settings: AppSettings, actions: SettingsActions) {
+    item(key = "feedback-header") { SectionHeader("Feedback and motion") }
+    item(key = "feedback-haptics") {
+        SettingsSwitchRow(
+            title = "Haptic feedback",
+            supporting = "Subtle vibrations as you tap, scrub and refresh",
+            checked = settings.hapticsEnabled,
+            onCheckedChange = actions::setHaptics,
+        )
+    }
+    item(key = "feedback-motion") {
+        SettingsSwitchRow(
+            title = "Reduce motion",
+            supporting = "Fade between screens and stop looping animations",
+            checked = settings.reduceMotion,
+            onCheckedChange = actions::setReduceMotion,
+        )
+    }
+    item(key = "feedback-reset") { ResetPreferencesRow(onReset = actions::resetAll) }
+}
+
+/** Persists preference changes from the UI; each call is fire-and-forget on the screen's scope. */
+private class SettingsActions(
+    private val preferences: AppPreferences,
+    private val scope: CoroutineScope,
+) {
+    fun setThemeMode(mode: ThemeMode) { scope.launch { preferences.setThemeMode(mode) } }
+    fun setDynamicColor(enabled: Boolean) { scope.launch { preferences.setDynamicColor(enabled) } }
+    fun setAccent(accent: AccentColor) { scope.launch { preferences.setAccent(accent) } }
+    fun setPureBlack(enabled: Boolean) { scope.launch { preferences.setPureBlack(enabled) } }
+    fun setHaptics(enabled: Boolean) { scope.launch { preferences.setHapticsEnabled(enabled) } }
+    fun setReduceMotion(enabled: Boolean) { scope.launch { preferences.setReduceMotion(enabled) } }
+    fun setSmoothCharts(enabled: Boolean) { scope.launch { preferences.setSmoothCharts(enabled) } }
+    fun setDefaultRange(key: String) { scope.launch { preferences.setDefaultRange(key) } }
+    fun resetAll() { scope.launch { preferences.resetToDefaults() } }
 }
 
 private fun LazyListScope.aboutSection() {
