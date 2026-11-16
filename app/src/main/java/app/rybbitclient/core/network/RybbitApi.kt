@@ -1,6 +1,7 @@
 package app.rybbitclient.core.network
 
 import app.rybbitclient.core.model.AnalyzeFunnelRequest
+import io.ktor.client.statement.request
 import app.rybbitclient.core.model.ApiKeyCreated
 import app.rybbitclient.core.model.CreateApiKeyRequest
 import app.rybbitclient.core.model.ErrorEvent
@@ -60,8 +61,17 @@ class RybbitApi(
     val baseUrl: String,
 ) {
 
-    suspend fun healthCheck() {
-        execute(HttpMethod.Get, "/api/health", emptyMap(), body = null)
+    /**
+     * `GET /api/health`. Returns the base URL that finally answered: when the client follows redirects
+     * (unauthenticated clients do), a self-hosted `http→https` or proxy redirect yields the new base URL.
+     */
+    suspend fun healthCheck(): String {
+        val response = send(HttpMethod.Get, HEALTH_PATH, emptyMap(), body = null)
+        val text = readBody(response)
+        if (!response.status.isSuccess()) {
+            throw ApiErrorMapper.map(response.status.value, text, response.headers[HttpHeaders.RetryAfter])
+        }
+        return resolvedBaseUrl(requested = baseUrl, answeredUrl = response.request.url.toString())
     }
 
     suspend fun organizations(): List<Organization> =
@@ -293,4 +303,17 @@ class RybbitApi(
         const val DEFAULT_RETENTION_RANGE = 30
         const val EVENT_NAME_PARAMETER = "event_name"
     }
+}
+
+internal const val HEALTH_PATH = "/api/health"
+
+/**
+ * The base URL implied by the URL that answered the health check, e.g. `http://a.com/api/health` redirected
+ * to `https://a.com/rybbit/api/health` gives `https://a.com/rybbit`. Falls back to [requested] when the
+ * answered URL is not a health URL (an unexpected redirect target).
+ */
+internal fun resolvedBaseUrl(requested: String, answeredUrl: String): String {
+    val withoutQuery = answeredUrl.substringBefore('?').substringBefore('#')
+    if (!withoutQuery.endsWith(HEALTH_PATH)) return requested
+    return withoutQuery.removeSuffix(HEALTH_PATH).trimEnd('/').ifEmpty { requested }
 }

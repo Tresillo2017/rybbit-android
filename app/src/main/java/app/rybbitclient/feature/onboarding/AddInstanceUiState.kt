@@ -22,6 +22,8 @@ data class AddInstanceUiState(
     val urlError: String? = null,
     val serverCheck: ServerCheck = ServerCheck.NotChecked,
     val serverProblem: String? = null,
+    /** Base URL that answered the last successful probe of [baseUrl]; differs from it behind a redirect. */
+    val resolvedBaseUrl: String? = null,
     val authMethod: AuthMethod = AuthMethod.ApiKey,
     val apiKey: String = "",
     val isApiKeyVisible: Boolean = false,
@@ -37,8 +39,15 @@ data class AddInstanceUiState(
     /** Plain-http addresses must show the insecure-traffic banner. */
     val isInsecure: Boolean get() = baseUrl?.startsWith("http://") == true
 
-    /** Live preview of the normalized address, shown under the server field. */
-    val previewText: String? get() = baseUrl?.takeIf { !isCloud }?.let { "Will connect to $it" }
+    /** Live preview of the normalized address (or the redirect target once checked), shown under the server field. */
+    val previewText: String? get() {
+        if (isCloud) return null
+        val resolved = resolvedBaseUrl
+        return when {
+            resolved != null && resolved != baseUrl -> "Server redirects to $resolved — that address will be used"
+            else -> baseUrl?.let { "Will connect to $it" }
+        }
+    }
 
     companion object {
         /** The fixed Rybbit Cloud base URL. */

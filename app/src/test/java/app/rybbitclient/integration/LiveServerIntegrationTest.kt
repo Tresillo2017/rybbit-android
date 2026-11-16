@@ -26,7 +26,10 @@ import java.time.LocalDate
  */
 class LiveServerIntegrationTest {
 
-    private val baseUrl = System.getenv("RYBBIT_IT_URL").orEmpty()
+    private val enteredUrl = System.getenv("RYBBIT_IT_URL").orEmpty()
+
+    /** Like the app: resolve the entered address through the unauthenticated probe, then use only that. */
+    private val baseUrl: String by lazy { runBlocking { auth.probe(enteredUrl) } }
     private val email = System.getenv("RYBBIT_IT_EMAIL").orEmpty()
     private val password = System.getenv("RYBBIT_IT_PASSWORD").orEmpty()
     private val siteId = System.getenv("RYBBIT_IT_SITE").orEmpty()
@@ -38,12 +41,11 @@ class LiveServerIntegrationTest {
 
     @Before
     fun requireServer() {
-        assumeTrue("live server not configured", listOf(baseUrl, email, password, siteId).all { it.isNotBlank() })
+        assumeTrue("live server not configured", listOf(enteredUrl, email, password, siteId).all { it.isNotBlank() })
     }
 
     @Test
     fun passwordSignInMintsWorkingApiKeyOverHttp() = runBlocking<Unit> {
-        auth.probe(baseUrl)
         val credential = auth.signInWithPassword(baseUrl, email, password, "JVM integration test")
         assertTrue("expected an API key, got $credential", credential is Credential.ApiKey)
 

@@ -46,10 +46,13 @@ class AuthService(
     private val deviceModel: String,
 ) {
 
-    /** `GET /api/health`. Succeeds when a Rybbit server answers at [baseUrl]; throws [ApiException] otherwise. */
-    suspend fun probe(baseUrl: String) {
+    /**
+     * `GET /api/health` without credentials, following redirects. Returns the base URL that actually
+     * answered (it differs from [baseUrl] behind an http→https or proxy redirect). Callers must use the
+     * returned URL for authenticated calls, which never follow redirects. Throws [ApiException] otherwise.
+     */
+    suspend fun probe(baseUrl: String): String =
         httpFactory.create().use { RybbitApi(it, baseUrl).healthCheck() }
-    }
 
     /**
      * Validates an API key by listing organizations. Returns the organizations on success, or throws

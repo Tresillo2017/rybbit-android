@@ -62,5 +62,9 @@ responses captured from a self-hosted server, which the unit tests decode.
 - User search returns no results on the tested self-hosted build, even with the documented
   `search`/`search_field` parameters. The client sends them as documented.
 - A 401 asks you to re-enter an API key in Settings. There is no in-place password re-login yet.
+- Every email/password sign-in creates a long-lived personal API key. Removing a server in the app does
+  not revoke it; revoke it in the web dashboard under Settings → Account → API keys.
+- If the server redirects (http→https or a reverse proxy), the app signs in to and stores the redirect
+  target. Authenticated requests never follow redirects, so credentials can't leak to another host.
 - For a self-signed HTTPS server, install its CA on the device (user CAs are trusted for self-hosted hosts
   but not for `app.rybbit.io`).

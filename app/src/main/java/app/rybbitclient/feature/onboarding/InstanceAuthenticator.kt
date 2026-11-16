@@ -9,8 +9,11 @@ import app.rybbitclient.core.network.Credential
  */
 interface InstanceAuthenticator {
 
-    /** Succeeds when a Rybbit server answers at [baseUrl]. Throws an ApiException otherwise. */
-    suspend fun probe(baseUrl: String)
+    /**
+     * Succeeds when a Rybbit server answers at [baseUrl] and returns the base URL that answered (after any
+     * redirect). Throws an ApiException otherwise.
+     */
+    suspend fun probe(baseUrl: String): String
 
     /** Validates [key] against [baseUrl]. Throws Unauthorized when the key is rejected. */
     suspend fun verifyApiKey(baseUrl: String, key: String)
@@ -22,9 +25,7 @@ interface InstanceAuthenticator {
 /** Production adapter. The device name is blank so AuthService labels the key with the device model. */
 class AuthServiceAuthenticator(private val authService: AuthService) : InstanceAuthenticator {
 
-    override suspend fun probe(baseUrl: String) {
-        authService.probe(baseUrl)
-    }
+    override suspend fun probe(baseUrl: String): String = authService.probe(baseUrl)
 
     override suspend fun verifyApiKey(baseUrl: String, key: String) {
         authService.signInWithApiKey(baseUrl, key)

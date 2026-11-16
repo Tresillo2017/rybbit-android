@@ -64,6 +64,7 @@ class AddInstanceViewModel(
                 urlError = parsed.error,
                 serverCheck = ServerCheck.NotChecked,
                 serverProblem = null,
+                resolvedBaseUrl = null,
                 displayName = if (state.isDisplayNameEdited) state.displayName else defaultDisplayName(parsed.baseUrl),
             )
         }
@@ -122,8 +123,8 @@ class AddInstanceViewModel(
     private suspend fun checkServer(baseUrl: String): Boolean {
         mutableState.update { it.copy(serverCheck = ServerCheck.Checking, serverProblem = null, formError = null) }
         return try {
-            authenticator.probe(baseUrl)
-            updateCheckResult(baseUrl, ServerCheck.Reachable, problem = null)
+            val resolved = authenticator.probe(baseUrl)
+            updateCheckResult(baseUrl, ServerCheck.Reachable, problem = null, resolved = resolved)
             true
         } catch (error: ApiException) {
             updateCheckResult(baseUrl, ServerCheck.Failed, describeAddServerError(error, AddServerStage.Probe))
@@ -132,10 +133,25 @@ class AddInstanceViewModel(
     }
 
     /** Applies a check result only if the address is still the one that was checked. */
-    private fun updateCheckResult(baseUrl: String, check: ServerCheck, problem: String?) {
+    private fun updateCheckResult(baseUrl: String, check: ServerCheck, problem: String?, resolved: String? = null) {
         mutableState.update { state ->
-            if (state.baseUrl != baseUrl) state else state.copy(serverCheck = check, serverProblem = problem)
+            if (state.baseUrl != baseUrl) {
+                state
+            } else {
+                state.copy(serverCheck = check, serverProblem = problem, resolvedBaseUrl = resolved)
+            }
         }
+    }
+
+    /**
+     * The base URL to sign in against and store. Authenticated clients never follow redirects (so a
+     * credential can't leak to another host), so self-hosted addresses are resolved through an
+     * unauthenticated probe first, reusing an earlier "Check server" result for the same address.
+     */
+    private suspend fun effectiveBaseUrl(input: AddInstanceUiState, baseUrl: String): String = when {
+        input.isCloud -> baseUrl
+        input.serverCheck == ServerCheck.Reachable && input.resolvedBaseUrl != null -> input.resolvedBaseUrl
+        else -> authenticator.probe(baseUrl)
     }
 
     private suspend fun signIn(input: AddInstanceUiState, baseUrl: String) {
@@ -143,14 +159,12 @@ class AddInstanceViewModel(
         var stage = AddServerStage.Probe
         try {
             // Cloud is fixed and always reachable, so only self-hosted addresses are probed.
-            if (!input.isCloud && input.serverCheck != ServerCheck.Reachable) {
-                authenticator.probe(baseUrl)
-            }
+            val effectiveUrl = effectiveBaseUrl(input, baseUrl)
             stage = AddServerStage.SignIn
             setProgress("Signing in…")
-            val signedIn = authenticate(input, baseUrl)
+            val signedIn = authenticate(input, effectiveUrl)
             setProgress("Saving…")
-            save(input, baseUrl, signedIn)
+            save(input, effectiveUrl, signedIn)
             mutableState.update { it.copy(isSubmitting = false, progress = null, serverCheck = ServerCheck.Reachable) }
             completions.trySend(Unit)
         } catch (error: ApiException) {
