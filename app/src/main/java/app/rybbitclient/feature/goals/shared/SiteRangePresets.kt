@@ -1,4 +1,4 @@
-package app.rybbitclient.feature.common
+package app.rybbitclient.feature.goals.shared
 
 import app.rybbitclient.core.query.DateRange
 import app.rybbitclient.core.query.Filter

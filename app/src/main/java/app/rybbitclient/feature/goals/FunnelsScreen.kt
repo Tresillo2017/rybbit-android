@@ -20,12 +20,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.rybbitclient.core.model.Funnel
 import app.rybbitclient.core.ui.components.EmptyView
-import app.rybbitclient.core.ui.components.ErrorView
 import app.rybbitclient.core.ui.components.LoadingView
 import app.rybbitclient.core.ui.theme.Spacing
 import app.rybbitclient.di.LocalAppContainer
-import app.rybbitclient.feature.common.SubScreenScaffold
-import app.rybbitclient.feature.common.toErrorCopy
+import app.rybbitclient.feature.goals.shared.ApiErrorContent
+import app.rybbitclient.feature.goals.shared.SubScreenScaffold
 
 private const val EMPTY_FUNNELS_TITLE = "No funnels yet"
 private const val EMPTY_FUNNELS_MESSAGE =
@@ -55,15 +54,11 @@ fun FunnelsScreen(
     SubScreenScaffold(title = "Funnels", onBack = onBack) { padding ->
         when (val current = state) {
             FunnelsUiState.Loading -> LoadingView(modifier = Modifier.padding(padding).padding(Spacing.screenGutter))
-            is FunnelsUiState.Error -> {
-                val copy = current.error.toErrorCopy()
-                ErrorView(
-                    title = copy.title,
-                    message = copy.message,
-                    modifier = Modifier.padding(padding).fillMaxSize(),
-                    onRetry = viewModel::refresh,
-                )
-            }
+            is FunnelsUiState.Error -> ApiErrorContent(
+                error = current.error,
+                modifier = Modifier.padding(padding).fillMaxSize(),
+                onRetry = viewModel::refresh,
+            )
             is FunnelsUiState.Content -> FunnelsList(
                 content = current,
                 onRefresh = viewModel::refresh,

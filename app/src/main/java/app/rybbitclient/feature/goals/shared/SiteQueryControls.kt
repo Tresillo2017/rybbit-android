@@ -1,4 +1,4 @@
-package app.rybbitclient.feature.common
+package app.rybbitclient.feature.goals.shared
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

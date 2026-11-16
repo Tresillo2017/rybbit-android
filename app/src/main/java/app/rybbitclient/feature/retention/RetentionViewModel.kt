@@ -33,6 +33,7 @@ class RetentionViewModel(
     fun selectMode(next: RetentionMode) {
         if (next == mode) return
         mode = next
+        range = clampRangeFor(next, range)
         reload(keepContent = false)
     }
 

@@ -16,16 +16,15 @@ import app.rybbitclient.core.ui.components.FunnelChart
 import app.rybbitclient.core.ui.components.KpiGrid
 import app.rybbitclient.core.ui.components.KpiItem
 import app.rybbitclient.core.ui.components.LoadingView
-import app.rybbitclient.core.ui.components.ErrorView
 import app.rybbitclient.core.ui.components.SectionCard
 import app.rybbitclient.core.ui.format.EMPTY_VALUE
 import app.rybbitclient.core.ui.format.formatFullNumber
 import app.rybbitclient.core.ui.format.formatPercent
 import app.rybbitclient.core.ui.theme.Spacing
 import app.rybbitclient.di.LocalAppContainer
-import app.rybbitclient.feature.common.SiteQueryControls
-import app.rybbitclient.feature.common.SubScreenScaffold
-import app.rybbitclient.feature.common.toErrorCopy
+import app.rybbitclient.feature.goals.shared.ApiErrorContent
+import app.rybbitclient.feature.goals.shared.SiteQueryControls
+import app.rybbitclient.feature.goals.shared.SubScreenScaffold
 
 private const val DEFAULT_FUNNEL_TITLE = "Funnel"
 private const val NO_VISITORS_SUMMARY = "No visitors entered this funnel in the selected period."
@@ -59,15 +58,11 @@ fun FunnelDetailScreen(
             SiteQueryControls(query = query, siteQuery = container.siteQueryState)
             when (val current = state) {
                 FunnelDetailUiState.Loading -> LoadingView(modifier = Modifier.padding(Spacing.screenGutter))
-                is FunnelDetailUiState.Error -> {
-                    val copy = current.error.toErrorCopy()
-                    ErrorView(
-                        title = copy.title,
-                        message = copy.message,
-                        modifier = Modifier.fillMaxSize(),
-                        onRetry = viewModel::refresh,
-                    )
-                }
+                is FunnelDetailUiState.Error -> ApiErrorContent(
+                    error = current.error,
+                    modifier = Modifier.fillMaxSize(),
+                    onRetry = viewModel::refresh,
+                )
                 is FunnelDetailUiState.Content -> FunnelDetailBody(current, viewModel::refresh)
             }
         }

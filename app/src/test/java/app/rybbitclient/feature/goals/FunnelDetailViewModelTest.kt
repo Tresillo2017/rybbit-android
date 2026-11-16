@@ -9,7 +9,7 @@ import app.rybbitclient.core.query.AnalyticsQuery
 import app.rybbitclient.core.query.DateRange
 import app.rybbitclient.core.query.SiteQueryState
 import app.rybbitclient.core.ui.components.FunnelStepItem
-import app.rybbitclient.feature.common.FakeSiteAnalytics
+import app.rybbitclient.feature.goals.shared.FakeSiteAnalytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

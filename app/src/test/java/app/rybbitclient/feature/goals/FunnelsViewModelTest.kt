@@ -3,7 +3,7 @@ package app.rybbitclient.feature.goals
 import app.rybbitclient.core.model.Funnel
 import app.rybbitclient.core.model.FunnelStep
 import app.rybbitclient.core.network.Server
-import app.rybbitclient.feature.common.FakeSiteAnalytics
+import app.rybbitclient.feature.goals.shared.FakeSiteAnalytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

@@ -34,7 +34,6 @@ import app.rybbitclient.core.model.Goal
 import app.rybbitclient.core.model.SessionSummary
 import app.rybbitclient.core.network.RybbitTimestamps
 import app.rybbitclient.core.ui.components.EmptyView
-import app.rybbitclient.core.ui.components.ErrorView
 import app.rybbitclient.core.ui.components.LoadingView
 import app.rybbitclient.core.ui.format.EMPTY_VALUE
 import app.rybbitclient.core.ui.format.countryLabel
@@ -44,7 +43,7 @@ import app.rybbitclient.core.ui.format.formatPercent
 import app.rybbitclient.core.ui.format.formatRelativeTime
 import app.rybbitclient.core.ui.theme.Spacing
 import app.rybbitclient.core.ui.theme.rybbitColors
-import app.rybbitclient.feature.common.toErrorCopy
+import app.rybbitclient.feature.goals.shared.ApiErrorContent
 
 private const val GOAL_TARGET_MAX_LINES = 1
 private const val PERCENT_SCALE = 100.0
@@ -121,14 +120,15 @@ private fun GoalKindBadge(kind: GoalKind) {
 }
 
 /**
- * Sessions that converted [state]'s goal, in a modal bottom sheet. Tapping a session calls [onOpenSession].
- * Renders nothing while [state] is [GoalSessionsState.Closed].
+ * Sessions that converted [state]'s goal, in a modal bottom sheet. Tapping a session calls [onOpenSession];
+ * a failed load calls [onRetry] with the goal. Renders nothing while [state] is [GoalSessionsState.Closed].
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoalSessionsSheet(
     state: GoalSessionsState,
     onDismiss: () -> Unit,
+    onRetry: (Goal) -> Unit,
     onOpenSession: (sessionId: String) -> Unit,
 ) {
     if (state == GoalSessionsState.Closed) return
@@ -144,10 +144,10 @@ fun GoalSessionsSheet(
             Spacer(Modifier.height(Spacing.md))
             when (state) {
                 is GoalSessionsState.Loading -> LoadingView(rowCount = 3)
-                is GoalSessionsState.Failed -> {
-                    val copy = state.error.toErrorCopy()
-                    ErrorView(title = copy.title, message = copy.message)
-                }
+                is GoalSessionsState.Failed -> ApiErrorContent(
+                    error = state.error,
+                    onRetry = { onRetry(goal) },
+                )
                 is GoalSessionsState.Loaded -> SessionsList(state.sessions, onOpenSession)
                 GoalSessionsState.Closed -> Unit
             }

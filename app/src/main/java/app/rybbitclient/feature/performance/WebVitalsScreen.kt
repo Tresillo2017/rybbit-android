@@ -22,7 +22,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.rybbitclient.core.ui.components.ErrorView
 import app.rybbitclient.core.ui.components.LoadingView
 import app.rybbitclient.core.ui.components.SectionCard
 import app.rybbitclient.core.ui.components.UnavailableView
@@ -31,9 +30,9 @@ import app.rybbitclient.core.ui.theme.Spacing
 import app.rybbitclient.core.ui.theme.metricValue
 import app.rybbitclient.core.ui.theme.rybbitColors
 import app.rybbitclient.di.LocalAppContainer
-import app.rybbitclient.feature.common.SiteQueryControls
-import app.rybbitclient.feature.common.SubScreenScaffold
-import app.rybbitclient.feature.common.toErrorCopy
+import app.rybbitclient.feature.goals.shared.SiteQueryControls
+import app.rybbitclient.feature.goals.shared.SubScreenScaffold
+import app.rybbitclient.feature.goals.shared.ApiErrorContent
 
 private const val UNAVAILABLE_TITLE = "Web Vitals aren't available"
 private const val UNAVAILABLE_MESSAGE =
@@ -72,15 +71,11 @@ fun WebVitalsScreen(
                     title = UNAVAILABLE_TITLE,
                     message = UNAVAILABLE_MESSAGE,
                 )
-                is WebVitalsUiState.Error -> {
-                    val copy = current.error.toErrorCopy()
-                    ErrorView(
-                        title = copy.title,
-                        message = copy.message,
-                        modifier = Modifier.fillMaxSize(),
-                        onRetry = viewModel::refresh,
-                    )
-                }
+                is WebVitalsUiState.Error -> ApiErrorContent(
+                    error = current.error,
+                    modifier = Modifier.fillMaxSize(),
+                    onRetry = viewModel::refresh,
+                )
                 is WebVitalsUiState.Content -> VitalsBody(current, viewModel::refresh)
             }
         }

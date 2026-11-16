@@ -1,4 +1,4 @@
-package app.rybbitclient.feature.common
+package app.rybbitclient.feature.goals.shared
 
 import app.rybbitclient.core.data.AnalyticsRepository
 import app.rybbitclient.core.data.Feature

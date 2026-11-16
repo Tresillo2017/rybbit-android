@@ -24,14 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.rybbitclient.core.ui.components.EmptyView
-import app.rybbitclient.core.ui.components.ErrorView
 import app.rybbitclient.core.ui.components.LoadingView
 import app.rybbitclient.core.ui.components.RetentionGrid
 import app.rybbitclient.core.ui.components.SectionCard
 import app.rybbitclient.core.ui.theme.Spacing
 import app.rybbitclient.di.LocalAppContainer
-import app.rybbitclient.feature.common.SubScreenScaffold
-import app.rybbitclient.feature.common.toErrorCopy
+import app.rybbitclient.feature.goals.shared.ApiErrorContent
+import app.rybbitclient.feature.goals.shared.SubScreenScaffold
 
 private const val EMPTY_RETENTION_TITLE = "No returning visitors yet"
 private const val EMPTY_RETENTION_MESSAGE =
@@ -68,15 +67,11 @@ fun RetentionScreen(
             )
             when (val current = state) {
                 is RetentionUiState.Loading -> LoadingView(modifier = Modifier.padding(Spacing.screenGutter))
-                is RetentionUiState.Error -> {
-                    val copy = current.error.toErrorCopy()
-                    ErrorView(
-                        title = copy.title,
-                        message = copy.message,
-                        modifier = Modifier.fillMaxSize(),
-                        onRetry = viewModel::refresh,
-                    )
-                }
+                is RetentionUiState.Error -> ApiErrorContent(
+                    error = current.error,
+                    modifier = Modifier.fillMaxSize(),
+                    onRetry = viewModel::refresh,
+                )
                 is RetentionUiState.Content -> RetentionBody(content = current, onRefresh = viewModel::refresh)
             }
         }
@@ -110,7 +105,7 @@ private fun RetentionControls(
             contentPadding = PaddingValues(horizontal = Spacing.screenGutter),
             horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
-            items(RETENTION_RANGE_OPTIONS, key = { it }) { days ->
+            items(rangeOptionsFor(mode), key = { it }) { days ->
                 FilterChip(
                     selected = days == range,
                     onClick = { onRangeSelected(days) },

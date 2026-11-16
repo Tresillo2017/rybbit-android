@@ -27,13 +27,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.rybbitclient.core.model.Goal
 import app.rybbitclient.core.ui.components.EmptyView
-import app.rybbitclient.core.ui.components.ErrorView
 import app.rybbitclient.core.ui.components.LoadingView
 import app.rybbitclient.core.ui.theme.Spacing
 import app.rybbitclient.di.LocalAppContainer
-import app.rybbitclient.feature.common.SiteQueryControls
-import app.rybbitclient.feature.common.SubScreenScaffold
 import app.rybbitclient.feature.common.toErrorCopy
+import app.rybbitclient.feature.goals.shared.ApiErrorContent
+import app.rybbitclient.feature.goals.shared.SiteQueryControls
+import app.rybbitclient.feature.goals.shared.SubScreenScaffold
 
 private const val LOAD_MORE_PREFETCH_ITEMS = 3
 private const val EMPTY_GOALS_TITLE = "No goals yet"
@@ -78,6 +78,7 @@ fun GoalsScreen(
     GoalSessionsSheet(
         state = sheet,
         onDismiss = viewModel::closeGoalSessions,
+        onRetry = viewModel::openGoalSessions,
         onOpenSession = { sessionId ->
             viewModel.closeGoalSessions()
             onOpenSession(sessionId)
@@ -94,15 +95,11 @@ private fun GoalsBody(
 ) {
     when (state) {
         GoalsUiState.Loading -> LoadingView(modifier = Modifier.fillMaxWidth().padding(Spacing.screenGutter))
-        is GoalsUiState.Error -> {
-            val copy = state.error.toErrorCopy()
-            ErrorView(
-                title = copy.title,
-                message = copy.message,
-                modifier = Modifier.fillMaxSize(),
-                onRetry = onRefresh,
-            )
-        }
+        is GoalsUiState.Error -> ApiErrorContent(
+            error = state.error,
+            modifier = Modifier.fillMaxSize(),
+            onRetry = onRefresh,
+        )
         is GoalsUiState.Content -> GoalsList(state, onRefresh, onLoadMore, onOpenGoal)
     }
 }

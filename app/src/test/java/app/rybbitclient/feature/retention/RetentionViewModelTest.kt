@@ -2,8 +2,9 @@ package app.rybbitclient.feature.retention
 
 import app.rybbitclient.core.model.RetentionCohort as CohortData
 import app.rybbitclient.core.model.RetentionData
+import app.rybbitclient.core.network.FeatureUnavailable
 import app.rybbitclient.core.network.Server
-import app.rybbitclient.feature.common.FakeSiteAnalytics
+import app.rybbitclient.feature.goals.shared.FakeSiteAnalytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -123,6 +124,48 @@ class RetentionViewModelTest {
         val error = viewModel.uiState.value as RetentionUiState.Error
         assertEquals(RetentionMode.Day, error.mode)
         assertEquals(DEFAULT_RETENTION_WINDOW_DAYS, error.range)
+    }
+
+    @Test
+    fun `switching to daily mode caps a longer weekly range at 90 days`() {
+        // Arrange
+        val requests = mutableListOf<Pair<String, Int>>()
+        val analytics = FakeSiteAnalytics(retentionHandler = { mode, range ->
+            requests += mode to range
+            RetentionData()
+        })
+        val viewModel = RetentionViewModel(SITE_ID, analytics)
+        viewModel.selectMode(RetentionMode.Week)
+        viewModel.selectRange(365)
+
+        // Act
+        viewModel.selectMode(RetentionMode.Day)
+
+        // Assert
+        assertEquals("day" to 90, requests.last())
+        assertEquals(90, viewModel.uiState.value.range)
+    }
+
+    @Test
+    fun `daily mode offers only windows the server does not truncate`() {
+        // Act and Assert
+        assertEquals(listOf(30, 90), rangeOptionsFor(RetentionMode.Day))
+        assertEquals(listOf(30, 90, 180, 365), rangeOptionsFor(RetentionMode.Week))
+    }
+
+    @Test
+    fun `a missing retention route keeps its unavailable type for the screen`() {
+        // Arrange
+        val analytics = FakeSiteAnalytics(retentionHandler = { _, _ ->
+            throw FeatureUnavailable(code = "API_ROUTE_NOT_FOUND", serverMessage = null, resolution = null)
+        })
+
+        // Act
+        val viewModel = RetentionViewModel(SITE_ID, analytics)
+
+        // Assert
+        val error = viewModel.uiState.value as RetentionUiState.Error
+        assertTrue(error.error is FeatureUnavailable)
     }
 
     @Test
