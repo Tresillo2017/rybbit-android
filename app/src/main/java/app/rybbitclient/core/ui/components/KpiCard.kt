@@ -46,6 +46,9 @@ private const val KPI_MIN_HEIGHT_DP = 104
 private const val SELECTED_BORDER_DP = 2
 private const val DELTA_CONTEXT_LABEL = "vs previous period"
 
+/** Visible short form; the full [DELTA_CONTEXT_LABEL] stays in the accessibility description. */
+private const val DELTA_CONTEXT_SHORT = "vs prev."
+
 /** Direction of a change, independent of whether that direction is good or bad. */
 enum class DeltaTrend { Up, Down, Flat }
 
@@ -72,6 +75,7 @@ fun KpiCard(
     isInverse: Boolean = false,
     selected: Boolean = false,
     onClick: (() -> Unit)? = null,
+    compact: Boolean = false,
 ) {
     val colors = MaterialTheme.colorScheme
     val containerColor = if (selected) colors.primaryContainer.copy(alpha = 0.55f) else colors.surfaceContainerLow
@@ -85,7 +89,7 @@ fun KpiCard(
         }
     val cardColors = CardDefaults.cardColors(containerColor = containerColor)
     val content: @Composable () -> Unit = {
-        KpiContent(label = label, value = value, deltaPercent = deltaPercent, isInverse = isInverse)
+        KpiContent(label = label, value = value, deltaPercent = deltaPercent, isInverse = isInverse, compact = compact)
     }
     if (onClick != null) {
         Card(onClick = onClick, modifier = cardModifier, colors = cardColors, border = border) { content() }
@@ -100,19 +104,28 @@ private fun KpiContent(
     value: String,
     deltaPercent: Double?,
     isInverse: Boolean,
+    compact: Boolean,
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(Spacing.lg)) {
+    // Narrow tiles (3+ per row) get tighter padding, a two-line label and a smaller number so values like
+    // "100.0%" and labels like "Share of errors" fit instead of being ellipsized.
+    val padding = if (compact) Spacing.md else Spacing.lg
+    val valueStyle = if (compact) {
+        MaterialTheme.typography.metricValue.copy(fontSize = MaterialTheme.typography.titleLarge.fontSize)
+    } else {
+        MaterialTheme.typography.metricValue
+    }
+    Column(modifier = Modifier.fillMaxWidth().padding(padding)) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
+            maxLines = if (compact) 2 else 1,
             overflow = TextOverflow.Ellipsis,
         )
         Spacer(Modifier.height(Spacing.xs))
         Text(
             text = value,
-            style = MaterialTheme.typography.metricValue,
+            style = valueStyle,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -148,7 +161,7 @@ private fun DeltaRow(deltaPercent: Double, isInverse: Boolean) {
         )
         Spacer(Modifier.width(Spacing.xs))
         Text(
-            text = DELTA_CONTEXT_LABEL,
+            text = DELTA_CONTEXT_SHORT,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
@@ -213,6 +226,7 @@ fun KpiGrid(
                         selected = item.key == selectedKey,
                         onClick = onItemClick?.let { callback -> { callback(item.key) } },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
+                        compact = columnCount >= COMPACT_COLUMN_THRESHOLD,
                     )
                 }
                 repeat(columnCount - rowItems.size) {
@@ -259,3 +273,6 @@ private fun KpiGridPreview() {
         )
     }
 }
+
+/** Grids with this many columns or more render compact tiles. */
+private const val COMPACT_COLUMN_THRESHOLD = 3

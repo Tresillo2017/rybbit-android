@@ -27,6 +27,7 @@ import app.rybbitclient.core.model.Site
 import app.rybbitclient.core.model.UserDetail
 import app.rybbitclient.core.model.UsersResponse
 import app.rybbitclient.core.query.AnalyticsQuery
+import app.rybbitclient.core.query.DateRange
 import app.rybbitclient.core.query.TimeBucket
 import app.rybbitclient.testsupport.FixtureFiles
 import app.rybbitclient.testsupport.apiReplying
@@ -55,8 +56,23 @@ class FixtureAnalyticsRepository : AnalyticsRepository {
 
     override suspend fun site(siteId: String): Site = fixtureApi("site.json").site(siteId)
 
-    override suspend fun overview(siteId: String, query: AnalyticsQuery): Overview =
-        fixtureApi("overview.json").overview(siteId, query)
+    override suspend fun overview(siteId: String, query: AnalyticsQuery): Overview {
+        val current = fixtureApi("overview.json").overview(siteId, query)
+        val range = query.range
+        val isPreviousPeriod = range is DateRange.ElapsedWindow ||
+            (range is DateRange.Custom && range.end.toString() < SCREENSHOT_RANGE_START)
+        return if (isPreviousPeriod) previousPeriodOf(current) else current
+    }
+
+    /** A plausible earlier week so the KPI tiles show real up/down deltas instead of 0.0%. */
+    private fun previousPeriodOf(current: Overview): Overview = current.copy(
+        users = current.users?.let { (it * 0.8).toInt() },
+        sessions = current.sessions?.let { (it * 0.85).toInt() },
+        pageviews = current.pageviews?.let { (it * 1.1).toInt() },
+        pagesPerSession = current.pagesPerSession?.let { it * 1.2 },
+        bounceRate = 12.5,
+        sessionDuration = current.sessionDuration?.let { it * 0.7 },
+    )
 
     override suspend fun overviewTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket): List<OverviewPoint> {
         val file = if (bucket == TimeBucket.Hour) "overview_timeseries_hour.json" else "overview_timeseries_day.json"
