@@ -60,6 +60,12 @@ interface AnalyticsRepository {
 
     suspend fun sessionDetail(siteId: String, sessionId: String): SessionDetailResponse
 
+    /** One page of a session's events, oldest first. Continue while `pagination.hasMore` is true. */
+    suspend fun sessionEventsPage(siteId: String, sessionId: String, offset: Int, limit: Int): SessionDetailResponse
+
+    /** Sessions of one user, newest first. [userId] is the identified ID or the anonymous device ID. */
+    suspend fun userSessions(siteId: String, query: AnalyticsQuery, userId: String, page: Int = 1, limit: Int = DEFAULT_LIMIT): List<SessionSummary>
+
     suspend fun sessionLocations(siteId: String, query: AnalyticsQuery): List<SessionLocation>
 
     suspend fun events(siteId: String, query: AnalyticsQuery, pageSize: Int = DEFAULT_LIMIT, beforeCursor: String? = null): EventsResponse
@@ -85,6 +91,16 @@ interface AnalyticsRepository {
     suspend fun analyzeFunnel(siteId: String, query: AnalyticsQuery, steps: List<FunnelStep>): List<FunnelStepResult>
 
     suspend fun users(siteId: String, query: AnalyticsQuery, page: Int = 1, pageSize: Int = DEFAULT_USERS_PAGE_SIZE): UsersResponse
+
+    /** Users list with optional search (matched on the listed user ID) and identified-only filter. */
+    suspend fun usersFiltered(
+        siteId: String,
+        query: AnalyticsQuery,
+        page: Int = 1,
+        pageSize: Int = DEFAULT_USERS_PAGE_SIZE,
+        identifiedOnly: Boolean = false,
+        search: String? = null,
+    ): UsersResponse
 
     suspend fun userDetail(siteId: String, userId: String): UserDetail
 

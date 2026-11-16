@@ -69,6 +69,17 @@ class DefaultAnalyticsRepository(
     override suspend fun sessionDetail(siteId: String, sessionId: String): SessionDetailResponse =
         onActive { sessionDetail(siteId, sessionId) }
 
+    override suspend fun sessionEventsPage(siteId: String, sessionId: String, offset: Int, limit: Int): SessionDetailResponse =
+        onActive { sessionEventsPage(siteId, sessionId, offset, limit) }
+
+    override suspend fun userSessions(
+        siteId: String,
+        query: AnalyticsQuery,
+        userId: String,
+        page: Int,
+        limit: Int,
+    ): List<SessionSummary> = onActive { userSessions(siteId, query, userId, page, limit) }
+
     override suspend fun sessionLocations(siteId: String, query: AnalyticsQuery): List<SessionLocation> =
         onActive { sessionLocations(siteId, query) }
 
@@ -105,6 +116,15 @@ class DefaultAnalyticsRepository(
 
     override suspend fun users(siteId: String, query: AnalyticsQuery, page: Int, pageSize: Int): UsersResponse =
         onActive { users(siteId, query, page, pageSize) }
+
+    override suspend fun usersFiltered(
+        siteId: String,
+        query: AnalyticsQuery,
+        page: Int,
+        pageSize: Int,
+        identifiedOnly: Boolean,
+        search: String?,
+    ): UsersResponse = onActive { usersFiltered(siteId, query, page, pageSize, identifiedOnly, search) }
 
     override suspend fun userDetail(siteId: String, userId: String): UserDetail = onActive { userDetail(siteId, userId) }
 
