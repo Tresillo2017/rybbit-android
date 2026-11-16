@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -44,6 +45,8 @@ android {
     testOptions {
         unitTests {
             isReturnDefaultValues = true
+            // Robolectric + Roborazzi render real Android resources (strings, themes, fonts).
+            isIncludeAndroidResources = true
         }
     }
 }
@@ -65,6 +68,8 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    // ComponentActivity for createAndroidComposeRule in JVM tests (manifest entry + test APIs).
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(libs.androidx.datastore.preferences)
 
@@ -79,4 +84,24 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.ktor.client.mock)
+
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+}
+
+// Screenshot tests render 16 real screens and write PNGs, so they run only for Roborazzi tasks
+// (recordRoborazziDebug / verifyRoborazziDebug), not in the default testDebugUnitTest run.
+val isRoborazziRun = gradle.startParameter.taskNames.any { it.contains("Roborazzi", ignoreCase = true) }
+tasks.withType<Test>().configureEach {
+    if (!isRoborazziRun) exclude("app/rybbitclient/screenshots/**")
+}
+
+// Robolectric runs Compose's idling strategy through Espresso when it is on the classpath. Espresso 3.5.x
+// fails its input-injection reflection on SDK 37 (NoSuchMethodException), so the unit-test classpath
+// pins the newer 3.7.0 release that Compose's ui-test pulls in transitively.
+configurations.matching { it.name.contains("UnitTest") }.configureEach {
+    resolutionStrategy.force("androidx.test.espresso:espresso-core:3.7.0")
 }
