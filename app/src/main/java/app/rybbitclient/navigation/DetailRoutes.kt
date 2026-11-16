@@ -39,7 +39,12 @@ fun NavGraphBuilder.detailRoutes(navigator: AppNavigator) {
         ErrorDetailScreen(siteId = route.siteId, errorMessage = route.errorMessage, onBack = navigator::back)
     }
     composable<GoalsRoute> { entry ->
-        GoalsScreen(siteId = entry.toRoute<GoalsRoute>().siteId, onBack = navigator::back)
+        val siteId = entry.toRoute<GoalsRoute>().siteId
+        GoalsScreen(
+            siteId = siteId,
+            onOpenSession = { navigator.openSessionDetail(siteId, it) },
+            onBack = navigator::back,
+        )
     }
     composable<FunnelsRoute> { entry ->
         val siteId = entry.toRoute<FunnelsRoute>().siteId
