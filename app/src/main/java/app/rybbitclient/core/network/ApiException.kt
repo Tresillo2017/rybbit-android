@@ -78,3 +78,10 @@ class Network(cause: Throwable) : ApiException("Couldn't reach the server. Check
 
 /** The server answered, but the body could not be decoded into the expected model. */
 class InvalidResponse(cause: Throwable) : ApiException("The server sent a response this app doesn't understand.", cause)
+
+/**
+ * The address answered with a redirect to a different host, port or a downgraded scheme. Credentials are
+ * never sent there automatically; the user can enter [target] themselves if they trust it.
+ */
+class UntrustedRedirect(val target: String) :
+    ApiException("This address redirects to $target. Enter that address instead if you trust it.")

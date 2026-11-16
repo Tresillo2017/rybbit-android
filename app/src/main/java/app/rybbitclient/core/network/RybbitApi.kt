@@ -35,6 +35,7 @@ import app.rybbitclient.core.model.Envelope
 import app.rybbitclient.core.query.AnalyticsQuery
 import app.rybbitclient.core.query.TimeBucket
 import io.ktor.client.HttpClient
+import java.net.URI
 import io.ktor.client.request.parameter
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -308,12 +309,35 @@ class RybbitApi(
 internal const val HEALTH_PATH = "/api/health"
 
 /**
- * The base URL implied by the URL that answered the health check, e.g. `http://a.com/api/health` redirected
- * to `https://a.com/rybbit/api/health` gives `https://a.com/rybbit`. Falls back to [requested] when the
- * answered URL is not a health URL (an unexpected redirect target).
+ * The base URL implied by the URL that answered the health check. Only safe redirects are adopted: same
+ * host and port with the same scheme (a path change such as `/rybbit`), or a plain http→https upgrade on
+ * the same host with default ports. Anything else (another host or port, an https→http downgrade, or
+ * userinfo) throws [UntrustedRedirect] so a network attacker can't steer credentials elsewhere. Returns
+ * [requested] when nothing changed or the target isn't a health URL.
  */
 internal fun resolvedBaseUrl(requested: String, answeredUrl: String): String {
-    val withoutQuery = answeredUrl.substringBefore('?').substringBefore('#')
-    if (!withoutQuery.endsWith(HEALTH_PATH)) return requested
-    return withoutQuery.removeSuffix(HEALTH_PATH).trimEnd('/').ifEmpty { requested }
+    val from = runCatching { URI(requested) }.getOrNull() ?: return requested
+    val to = runCatching { URI(answeredUrl) }.getOrNull() ?: return requested
+    val path = to.rawPath.orEmpty()
+    if (!path.endsWith(HEALTH_PATH)) return requested
+    val base = URI(to.scheme, null, to.host, to.port, path.removeSuffix(HEALTH_PATH).trimEnd('/'), null, null)
+        .toString()
+    if (base == requested) return requested
+    if (!isSafeRedirect(from, to)) throw UntrustedRedirect(base)
+    return base
+}
+
+private fun isSafeRedirect(from: URI, to: URI): Boolean {
+    if (to.rawUserInfo != null || to.host == null) return false
+    if (!to.host.equals(from.host, ignoreCase = true)) return false
+    val sameScheme = to.scheme.equals(from.scheme, ignoreCase = true)
+    if (sameScheme) return effectivePort(to) == effectivePort(from)
+    val upgrade = from.scheme.equals("http", true) && to.scheme.equals("https", true)
+    return upgrade && from.port == -1 && to.port == -1
+}
+
+private fun effectivePort(uri: URI): Int = when {
+    uri.port != -1 -> uri.port
+    uri.scheme.equals("https", true) -> 443
+    else -> 80
 }

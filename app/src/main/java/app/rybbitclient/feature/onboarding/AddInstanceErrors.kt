@@ -5,6 +5,7 @@ import app.rybbitclient.core.network.Forbidden
 import app.rybbitclient.core.network.InvalidCredentials
 import app.rybbitclient.core.network.InvalidResponse
 import app.rybbitclient.core.network.Network
+import app.rybbitclient.core.network.UntrustedRedirect
 import app.rybbitclient.core.network.RateLimited
 import app.rybbitclient.core.network.Server
 import app.rybbitclient.core.network.Unauthorized
@@ -22,6 +23,7 @@ internal const val SECURE_CONNECTION_FAILED =
 /** Friendly copy for add-server and re-login failures. Never shows raw server text. */
 fun describeAddServerError(error: ApiException, stage: AddServerStage): String = when {
     error is Network -> describeNetworkError(error)
+    error is UntrustedRedirect -> error.message.orEmpty()
     stage == AddServerStage.Probe -> NOT_A_RYBBIT_SERVER
     error is InvalidCredentials -> "The email or password is incorrect."
     error is Unauthorized -> "That API key was rejected. Check that it was copied in full and hasn't been revoked."

@@ -11,6 +11,7 @@ import app.rybbitclient.core.network.NotFound
 import app.rybbitclient.core.network.RateLimited
 import app.rybbitclient.core.network.Server
 import app.rybbitclient.core.network.Unauthorized
+import app.rybbitclient.core.network.UntrustedRedirect
 
 /** Title and body for an error state. Always written by us, never raw server text. */
 data class ErrorCopy(val title: String, val message: String)
@@ -27,4 +28,5 @@ fun ApiException.toErrorCopy(): ErrorCopy = when (this) {
     is Server -> ErrorCopy("Server problem", "The Rybbit server failed. Try again later.")
     is Network -> ErrorCopy("No connection", "Couldn't reach the server. Check your connection.")
     is InvalidResponse -> ErrorCopy("Unexpected response", "The server sent data this app can't read yet.")
+    is UntrustedRedirect -> ErrorCopy("Server moved", "This server redirects to $target. Add that address as a new server if you trust it.")
 }

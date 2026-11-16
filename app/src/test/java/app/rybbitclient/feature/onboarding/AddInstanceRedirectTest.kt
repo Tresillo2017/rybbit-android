@@ -51,11 +51,11 @@ class AddInstanceRedirectTest {
     fun `check server shows the redirect target and sign-in reuses it without probing again`() = runTest(dispatcher) {
         // Arrange
         val auth = FakeInstanceAuthenticator().apply {
-            redirects["https://example.com/stats"] = "https://stats.example.com"
+            redirects["http://example.com"] = "https://example.com/rybbit"
         }
         val repository = InstanceRepository(InMemoryKeyValueStore(), InMemorySecretStore())
         val viewModel = AddInstanceViewModel(isCloud = false, authenticator = auth, instances = repository)
-        viewModel.onServerInputChanged("https://example.com/stats")
+        viewModel.onServerInputChanged("http://example.com")
 
         // Act
         viewModel.onCheckServer()
@@ -63,8 +63,8 @@ class AddInstanceRedirectTest {
         viewModel.submit()
 
         // Assert
-        assertTrue(viewModel.uiState.value.previewText.orEmpty().contains("https://stats.example.com"))
+        assertTrue(viewModel.uiState.value.previewText.orEmpty().contains("https://example.com/rybbit"))
         assertEquals(1, auth.probedUrls.size)
-        assertEquals(listOf("https://stats.example.com"), auth.signInUrls)
+        assertEquals(listOf("https://example.com/rybbit"), auth.signInUrls)
     }
 }
