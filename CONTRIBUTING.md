@@ -40,3 +40,12 @@ live server.
 - Use [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `refactor:`, `docs:`,
   `test:`, `chore:`, `ci:`.
 - Keep PRs focused, fill in the PR template, and make sure CI is green.
+
+## Releasing
+
+Releases are built by the `Release` workflow when a `v*` tag is pushed. It signs the APK with the project's
+fixed key from these repository secrets: `RELEASE_KEYSTORE_BASE64`, `RELEASE_KEYSTORE_PASSWORD`,
+`RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD`, and it fails rather than publish a debug-signed APK.
+Never change or lose this key: Android only updates an installed app when the new APK has the same signature.
+Local `assembleRelease` builds fall back to the debug key unless `RYBBIT_KEYSTORE`,
+`RYBBIT_KEYSTORE_PASSWORD`, `RYBBIT_KEY_ALIAS` and `RYBBIT_KEY_PASSWORD` are set.

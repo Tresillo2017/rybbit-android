@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-11-16
+
+### Fixed
+- Releases are now signed with one fixed key, so a new version installs over the previous one and keeps your
+  servers. Earlier releases (0.1.0, 0.2.0) used throwaway keys and cannot be updated in place: uninstall them once
+  before installing 0.2.1.
+
 ## [0.2.0] - 2026-11-16
 
 Material 3 Expressive redesign, with personalization settings.
@@ -41,5 +48,6 @@ First public pre-release.
 - Detection of features a self-hosted server doesn't offer, which are hidden instead of erroring.
 - Redirect handling: same-host http→https and sub-path redirects are adopted; other redirects are refused.
 
+[0.2.1]: https://github.com/Tresillo2017/rybbit-android/releases/tag/v0.2.1
 [0.2.0]: https://github.com/Tresillo2017/rybbit-android/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Tresillo2017/rybbit-android/releases/tag/v0.1.0

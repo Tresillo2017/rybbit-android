@@ -13,8 +13,23 @@ android {
         applicationId = "app.rybbitclient"
         minSdk = 26
         targetSdk = 37
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.2.1"
+    }
+
+    // A fixed release key keeps updates installable: Android only updates an app in place when the new APK is signed
+    // with the same certificate. CI provides these from repository secrets; without them (local builds) the release
+    // build falls back to the debug key so `assembleRelease` still works, but that APK cannot update a release install.
+    val releaseKeystore = providers.environmentVariable("RYBBIT_KEYSTORE").orNull
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = providers.environmentVariable("RYBBIT_KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("RYBBIT_KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("RYBBIT_KEY_PASSWORD").get()
+            }
+        }
     }
 
     buildTypes {
@@ -25,9 +40,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            // Debug-signed so `assembleRelease` produces an installable APK out of the box.
-            // Replace with a real signing config before distributing.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 

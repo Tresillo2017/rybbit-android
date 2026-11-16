@@ -67,8 +67,9 @@ Download the APK from [Releases](https://github.com/Tresillo2017/rybbit-android/
 (allow installs from unknown sources). Android 8.0 (API 26) or newer is required.
 
 > [!WARNING]
-> Pre-release builds are signed with a development key. Uninstall the app before switching to a build
-> signed with a different key.
+> v0.1.0 and v0.2.0 were signed with throwaway keys, so they can't be updated in place. Uninstall them
+> once (this removes your saved servers) before installing v0.2.1 or newer. From v0.2.1 on, every release
+> is signed with the same key, so updates install over the top and keep your servers.
 
 ## Connecting your server
 
