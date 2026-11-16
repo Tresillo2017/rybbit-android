@@ -15,12 +15,12 @@ import kotlinx.coroutines.flow.update
 class SiteQueryState(initial: AnalyticsQuery = AnalyticsQuery(range = DateRange.Last7Days)) {
 
     private val state = MutableStateFlow(initial)
-    private var currentSiteId: Int? = null
+    private var currentSiteId: String? = null
 
     val query: StateFlow<AnalyticsQuery> = state.asStateFlow()
 
     /** Call when a site is opened. Switching to a different site clears its filters (range is kept). */
-    fun onSiteOpened(siteId: Int) {
+    fun onSiteOpened(siteId: String) {
         if (currentSiteId != null && currentSiteId != siteId) {
             state.update { it.copy(filters = emptyList()) }
         }
