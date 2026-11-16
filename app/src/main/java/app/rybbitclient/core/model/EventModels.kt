@@ -19,6 +19,7 @@ data class Event(
     @SerialName("session_id") val sessionId: String? = null,
     @SerialName("user_id") val userId: String? = null,
     @SerialName("identified_user_id") val identifiedUserId: String? = null,
+    @SerialName("event_cursor") val eventCursor: String? = null,
     val pathname: String? = null,
     val querystring: String? = null,
     val hostname: String? = null,
