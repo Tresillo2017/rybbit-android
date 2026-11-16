@@ -19,7 +19,12 @@ import app.rybbitclient.feature.users.UserDetailScreen
 fun NavGraphBuilder.detailRoutes(navigator: AppNavigator) {
     composable<SessionDetailRoute> { entry ->
         val route = entry.toRoute<SessionDetailRoute>()
-        SessionDetailScreen(siteId = route.siteId, sessionId = route.sessionId, onBack = navigator::back)
+        SessionDetailScreen(
+            siteId = route.siteId,
+            sessionId = route.sessionId,
+            onOpenUser = { navigator.openUserDetail(route.siteId, it) },
+            onBack = navigator::back,
+        )
     }
     composable<UserDetailRoute> { entry ->
         val route = entry.toRoute<UserDetailRoute>()

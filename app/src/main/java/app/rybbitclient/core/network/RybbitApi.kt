@@ -95,6 +95,14 @@ class RybbitApi(
     suspend fun sessionDetail(siteId: String, sessionId: String): SessionDetailResponse =
         data(siteId, "sessions/${seg(sessionId)}", emptyMap())
 
+    /** One page of a session's events (oldest first). Continue while `pagination.hasMore` is true. */
+    suspend fun sessionEventsPage(siteId: String, sessionId: String, offset: Int, limit: Int): SessionDetailResponse =
+        data(siteId, "sessions/${seg(sessionId)}", mapOf("offset" to "$offset", "limit" to "$limit"))
+
+    /** Sessions of one user. `user_id` matches the identified ID, or the device ID of anonymous sessions. */
+    suspend fun userSessions(siteId: String, query: AnalyticsQuery, userId: String, page: Int = 1, limit: Int = DEFAULT_LIMIT): List<SessionSummary> =
+        data(siteId, "sessions", params(query, "page" to "$page", "limit" to "$limit", "user_id" to userId))
+
     suspend fun sessionLocations(siteId: String, query: AnalyticsQuery): List<SessionLocation> =
         data(siteId, "sessions/locations", params(query))
 
@@ -162,6 +170,27 @@ class RybbitApi(
 
     suspend fun users(siteId: String, query: AnalyticsQuery, page: Int = 1, pageSize: Int = DEFAULT_USERS_PAGE_SIZE): UsersResponse =
         get(siteRoute(siteId, "users"), params(query, "page" to "$page", "page_size" to "$pageSize"), serializer<UsersResponse>())
+
+    /** Users list with the optional search (matched on the listed user ID) and identified-only filters. */
+    suspend fun usersFiltered(
+        siteId: String,
+        query: AnalyticsQuery,
+        page: Int,
+        pageSize: Int,
+        identifiedOnly: Boolean,
+        search: String?,
+    ): UsersResponse = get(
+        siteRoute(siteId, "users"),
+        params(
+            query,
+            "page" to "$page",
+            "page_size" to "$pageSize",
+            "identified_only" to if (identifiedOnly) "true" else null,
+            "search" to search,
+            "search_field" to search?.let { "user_id" },
+        ),
+        serializer<UsersResponse>(),
+    )
 
     suspend fun userDetail(siteId: String, userId: String): UserDetail = data(siteId, "users/${seg(userId)}", emptyMap())
 
