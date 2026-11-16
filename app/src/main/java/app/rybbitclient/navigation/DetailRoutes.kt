@@ -37,11 +37,21 @@ fun NavGraphBuilder.detailRoutes(navigator: AppNavigator) {
     }
     composable<EventDetailRoute> { entry ->
         val route = entry.toRoute<EventDetailRoute>()
-        EventDetailScreen(siteId = route.siteId, eventName = route.eventName, onBack = navigator::back)
+        EventDetailScreen(
+            siteId = route.siteId,
+            eventName = route.eventName,
+            onOpenSession = { navigator.openSessionDetail(route.siteId, it) },
+            onBack = navigator::back,
+        )
     }
     composable<ErrorDetailRoute> { entry ->
         val route = entry.toRoute<ErrorDetailRoute>()
-        ErrorDetailScreen(siteId = route.siteId, errorMessage = route.errorMessage, onBack = navigator::back)
+        ErrorDetailScreen(
+            siteId = route.siteId,
+            errorMessage = route.errorMessage,
+            onOpenSession = { navigator.openSessionDetail(route.siteId, it) },
+            onBack = navigator::back,
+        )
     }
     composable<GoalsRoute> { entry ->
         GoalsScreen(siteId = entry.toRoute<GoalsRoute>().siteId, onBack = navigator::back)
