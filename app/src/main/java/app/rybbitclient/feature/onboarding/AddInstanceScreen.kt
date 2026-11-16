@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -111,7 +112,7 @@ private fun AddInstanceForm(
         } else {
             ServerAddressField(state, viewModel)
         }
-        ServerCheckRow(state = state, onCheck = viewModel::onCheckServer)
+        if (!state.isCloud) ServerCheckRow(state = state, onCheck = viewModel::onCheckServer)
         AuthMethodSwitch(selected = state.authMethod, onSelect = viewModel::onAuthMethodChanged)
         when (state.authMethod) {
             AuthMethod.ApiKey -> ApiKeyFields(state, viewModel)
@@ -143,6 +144,12 @@ private fun ServerAddressField(state: AddInstanceUiState, viewModel: AddInstance
             modifier = Modifier.fillMaxWidth(),
         )
         if (state.isInsecure) InsecureTrafficBanner()
+        TextButton(
+            onClick = { viewModel.onServerInputChanged(AddInstanceUiState.CLOUD_BASE_URL) },
+            modifier = Modifier.heightIn(min = Spacing.minTouchTarget),
+        ) {
+            Text("Use Rybbit Cloud instead")
+        }
     }
 }
 

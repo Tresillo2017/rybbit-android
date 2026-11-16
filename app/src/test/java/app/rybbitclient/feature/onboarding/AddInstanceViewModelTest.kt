@@ -334,7 +334,22 @@ class AddInstanceViewModelTest {
         assertEquals("https://app.rybbit.io", saved.baseUrl)
         assertEquals(InstanceKind.Cloud, saved.kind)
         assertEquals("Rybbit Cloud", saved.displayName)
-        assertEquals(listOf("https://app.rybbit.io"), auth.probedUrls)
+        assertTrue(auth.probedUrls.isEmpty())
+    }
+
+    @Test
+    fun `typed cloud address saves as a cloud instance from the self-hosted form`() = runTest(dispatcher) {
+        // Arrange
+        val repository = newRepository()
+        val viewModel = newViewModel(FakeInstanceAuthenticator(), repository, isCloud = false)
+        viewModel.onServerInputChanged("app.rybbit.io")
+        viewModel.onApiKeyChanged("cloud-key")
+
+        // Act
+        viewModel.submit()
+
+        // Assert
+        assertEquals(InstanceKind.Cloud, repository.instances.first().single().kind)
     }
 
     private fun newViewModel(

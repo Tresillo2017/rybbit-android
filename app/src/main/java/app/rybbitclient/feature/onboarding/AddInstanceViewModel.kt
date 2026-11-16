@@ -141,7 +141,8 @@ class AddInstanceViewModel(
         setProgress("Checking server…")
         var stage = AddServerStage.Probe
         try {
-            if (input.serverCheck != ServerCheck.Reachable) {
+            // Cloud is fixed and always reachable, so only self-hosted addresses are probed.
+            if (!input.isCloud && input.serverCheck != ServerCheck.Reachable) {
                 authenticator.probe(baseUrl)
             }
             stage = AddServerStage.SignIn
@@ -176,7 +177,11 @@ class AddInstanceViewModel(
             id = newId(),
             displayName = input.displayName.trim().ifEmpty { defaultDisplayName(baseUrl, input.isCloud) },
             baseUrl = baseUrl,
-            kind = if (input.isCloud) InstanceKind.Cloud else InstanceKind.SelfHosted,
+            kind = if (input.isCloud || baseUrl == AddInstanceUiState.CLOUD_BASE_URL) {
+                InstanceKind.Cloud
+            } else {
+                InstanceKind.SelfHosted
+            },
             authType = when (signedIn.credential) {
                 is Credential.ApiKey -> AuthType.ApiKey
                 is Credential.Session -> AuthType.Session

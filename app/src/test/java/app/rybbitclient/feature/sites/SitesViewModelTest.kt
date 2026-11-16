@@ -212,6 +212,27 @@ class SitesViewModelTest {
     }
 
     @Test
+    fun `auto-open never fires after the first load of the process`() = runTest(dispatcher) {
+        // Arrange: the first load on server one has no remembered site, so the gate is spent on that load
+        val repository = repositoryWith(instance("one"), instance("two"))
+        val analytics = FakeSitesAnalytics(
+            organizationsResult = { listOf(testOrganization("org-a", "Acme", listOf(testSite(2, "Two")))) },
+        )
+        val viewModel = SitesViewModel(analytics, repository, AutoOpenGate())
+        val offered = mutableListOf<SiteItem>()
+        val collector = launch { viewModel.autoOpenSite.collect { offered += it } }
+        repository.setLastSelectedSiteId("two", "2")
+
+        // Act
+        viewModel.selectInstance("two")
+
+        // Assert
+        assertEquals("two", viewModel.switcher.value.activeId)
+        assertTrue(offered.isEmpty())
+        collector.cancel()
+    }
+
+    @Test
     fun `tapping a site remembers it on the active instance`() = runTest(dispatcher) {
         // Arrange
         val repository = repositoryWith(instance("one"))

@@ -146,10 +146,15 @@ class SitesViewModel(
         null
     }
 
+    /**
+     * Auto-open belongs to the first successful load of the process only. The gate is claimed before the
+     * remembered site is read, so switching servers later never opens a site unprompted.
+     */
     private suspend fun offerAutoOpen(instanceId: String, sites: List<SiteItem>) {
+        if (!autoOpenGate.tryClaim()) return
         val remembered = instances.lastSelectedSiteId(instanceId).first() ?: return
         val target = sites.firstOrNull { it.analyticsId == remembered } ?: return
-        if (autoOpenGate.tryClaim()) autoOpenEvents.trySend(target)
+        autoOpenEvents.trySend(target)
     }
 
     private fun recordLiveCount(state: SitesUiState, siteId: String, count: Int): SitesUiState =
