@@ -39,7 +39,6 @@ private const val PERIOD_CELL_WIDTH_DP = 56
 private const val CELL_HEIGHT_DP = 36
 private const val CELL_CORNER_DP = 6
 private const val PERCENT_SCALE = 100.0
-private const val DARK_TEXT_LUMINANCE_LIMIT = 0.45f
 private val DarkCellText = Color(0xFF0F1A16)
 
 /**
@@ -185,9 +184,16 @@ private fun RetentionCell(cohortLabel: String, periodName: String, percent: Doub
     }
 }
 
-/** Light text on dark heat cells, dark text on light ones, so every cell meets contrast needs. */
-private fun textColorFor(background: Color): Color =
-    if (background.luminance() < DARK_TEXT_LUMINANCE_LIMIT) Color.White else DarkCellText
+/** Whichever of white or [DarkCellText] has the higher WCAG contrast against [background]. */
+internal fun textColorFor(background: Color): Color =
+    if (contrastRatio(Color.White, background) >= contrastRatio(DarkCellText, background)) Color.White else DarkCellText
+
+/** WCAG contrast ratio between two colours, from 1.0 (identical) to 21.0. */
+internal fun contrastRatio(first: Color, second: Color): Double {
+    val a = first.luminance().toDouble()
+    val b = second.luminance().toDouble()
+    return (maxOf(a, b) + 0.05) / (minOf(a, b) + 0.05)
+}
 
 @Preview(showBackground = true)
 @Composable

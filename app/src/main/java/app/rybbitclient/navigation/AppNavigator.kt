@@ -41,55 +41,63 @@ class AppNavigator(private val controller: NavController) {
         controller.navigate(SitesRoute) { popUpTo<SitesRoute> { inclusive = true } }
     }
 
+    /**
+     * The active server changed while site screens were open. Those screens still hold the old server's site
+     * ID, so the whole site shell is dropped and the picker is shown again.
+     */
+    fun openSitesAfterInstanceChange() {
+        controller.navigate(SitesRoute) { popUpTo<SitesRoute> { inclusive = true } }
+    }
+
     fun openSettings() {
-        controller.navigate(SettingsRoute)
+        controller.navigate(SettingsRoute) { launchSingleTop = true }
     }
 
     fun openAddInstance(isCloud: Boolean = false, fromOnboarding: Boolean = false) {
-        controller.navigate(AddInstanceRoute(isCloud = isCloud, fromOnboarding = fromOnboarding))
+        controller.navigate(AddInstanceRoute(isCloud = isCloud, fromOnboarding = fromOnboarding)) { launchSingleTop = true }
     }
 
     fun openSessionDetail(siteId: String, sessionId: String) {
-        controller.navigate(SessionDetailRoute(siteId = siteId, sessionId = sessionId))
+        controller.navigate(SessionDetailRoute(siteId = siteId, sessionId = sessionId)) { launchSingleTop = true }
     }
 
     fun openUserDetail(siteId: String, userId: String) {
-        controller.navigate(UserDetailRoute(siteId = siteId, userId = userId))
+        controller.navigate(UserDetailRoute(siteId = siteId, userId = userId)) { launchSingleTop = true }
     }
 
     fun openEventDetail(siteId: String, eventName: String) {
-        controller.navigate(EventDetailRoute(siteId = siteId, eventName = eventName))
+        controller.navigate(EventDetailRoute(siteId = siteId, eventName = eventName)) { launchSingleTop = true }
     }
 
     fun openErrorDetail(siteId: String, errorMessage: String) {
-        controller.navigate(ErrorDetailRoute(siteId = siteId, errorMessage = errorMessage))
+        controller.navigate(ErrorDetailRoute(siteId = siteId, errorMessage = errorMessage)) { launchSingleTop = true }
     }
 
     fun openGoals(siteId: String) {
-        controller.navigate(GoalsRoute(siteId = siteId))
+        controller.navigate(GoalsRoute(siteId = siteId)) { launchSingleTop = true }
     }
 
     fun openFunnels(siteId: String) {
-        controller.navigate(FunnelsRoute(siteId = siteId))
+        controller.navigate(FunnelsRoute(siteId = siteId)) { launchSingleTop = true }
     }
 
     fun openFunnelDetail(siteId: String, funnelId: Int) {
-        controller.navigate(FunnelDetailRoute(siteId = siteId, funnelId = funnelId))
+        controller.navigate(FunnelDetailRoute(siteId = siteId, funnelId = funnelId)) { launchSingleTop = true }
     }
 
     fun openRetention(siteId: String) {
-        controller.navigate(RetentionRoute(siteId = siteId))
+        controller.navigate(RetentionRoute(siteId = siteId)) { launchSingleTop = true }
     }
 
     fun openErrors(siteId: String) {
-        controller.navigate(ErrorsRoute(siteId = siteId))
+        controller.navigate(ErrorsRoute(siteId = siteId)) { launchSingleTop = true }
     }
 
     fun openRealtime(siteId: String) {
-        controller.navigate(RealtimeRoute(siteId = siteId))
+        controller.navigate(RealtimeRoute(siteId = siteId)) { launchSingleTop = true }
     }
 
     fun openWebVitals(siteId: String) {
-        controller.navigate(WebVitalsRoute(siteId = siteId))
+        controller.navigate(WebVitalsRoute(siteId = siteId)) { launchSingleTop = true }
     }
 }

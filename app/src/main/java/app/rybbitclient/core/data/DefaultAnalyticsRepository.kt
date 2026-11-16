@@ -83,8 +83,13 @@ class DefaultAnalyticsRepository(
     override suspend fun sessionLocations(siteId: String, query: AnalyticsQuery): List<SessionLocation> =
         onActive { sessionLocations(siteId, query) }
 
-    override suspend fun events(siteId: String, query: AnalyticsQuery, pageSize: Int, beforeCursor: String?): EventsResponse =
-        onActive { events(siteId, query, pageSize, beforeCursor) }
+    override suspend fun events(
+        siteId: String,
+        query: AnalyticsQuery,
+        pageSize: Int,
+        beforeCursor: String?,
+        beforeTimestamp: String?,
+    ): EventsResponse = onActive { events(siteId, query, pageSize, beforeCursor, beforeTimestamp) }
 
     override suspend fun eventNames(siteId: String, query: AnalyticsQuery): List<EventName> = onActive { eventNames(siteId, query) }
 
@@ -100,7 +105,7 @@ class DefaultAnalyticsRepository(
     override suspend fun errorEvents(siteId: String, query: AnalyticsQuery, errorMessage: String, limit: Int): List<ErrorEvent> =
         onActive { errorEvents(siteId, query, errorMessage, limit) }
 
-    override suspend fun errorTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket, errorMessage: String?): List<ErrorTimePoint> =
+    override suspend fun errorTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket, errorMessage: String): List<ErrorTimePoint> =
         onActive { errorTimeSeries(siteId, query, bucket, errorMessage) }
 
     override suspend fun goals(siteId: String, query: AnalyticsQuery, page: Int, pageSize: Int): GoalsResponse =

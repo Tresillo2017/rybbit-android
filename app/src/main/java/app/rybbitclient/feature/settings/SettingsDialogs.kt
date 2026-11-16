@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -70,7 +71,9 @@ fun ReauthenticateDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var key by rememberSaveable { mutableStateOf("") }
+    // Plain remember: the key is a secret and must not be written into saved-state bundles.
+    // The dialog leaves composition on dismiss or success, which discards the typed key.
+    var key by remember { mutableStateOf("") }
     var isKeyVisible by rememberSaveable { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = { if (!isWorking) onDismiss() },

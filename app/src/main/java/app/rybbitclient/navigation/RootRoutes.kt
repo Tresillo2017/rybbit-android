@@ -13,7 +13,7 @@ fun NavGraphBuilder.rootRoutes(navigator: AppNavigator) {
         val route = entry.toRoute<AddInstanceRoute>()
         AddInstanceScreen(
             isCloud = route.isCloud,
-            onInstanceAdded = if (route.fromOnboarding) navigator::openSitesAfterSetup else navigator::back,
+            onInstanceAdded = if (route.fromOnboarding) navigator::openSitesAfterSetup else navigator::openSitesAfterInstanceChange,
             onBack = navigator::back,
         )
     }
@@ -32,6 +32,7 @@ fun NavGraphBuilder.rootRoutes(navigator: AppNavigator) {
         SettingsScreen(
             onBack = navigator::back,
             onAddInstance = { navigator.openAddInstance() },
+            onActiveInstanceChanged = navigator::openSitesAfterInstanceChange,
             onAllInstancesRemoved = navigator::openOnboarding,
         )
     }

@@ -79,7 +79,7 @@ class FakeOverviewAnalytics : AnalyticsRepository {
         return liveHandler()
     }
 
-    override suspend fun events(siteId: String, query: AnalyticsQuery, pageSize: Int, beforeCursor: String?): EventsResponse {
+    override suspend fun events(siteId: String, query: AnalyticsQuery, pageSize: Int, beforeCursor: String?, beforeTimestamp: String?): EventsResponse {
         eventCalls += query
         return eventsHandler(query)
     }
@@ -96,7 +96,7 @@ class FakeOverviewAnalytics : AnalyticsRepository {
     override suspend fun eventsTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket): List<EventTimePoint> = unused()
     override suspend fun errorNames(siteId: String, query: AnalyticsQuery, limit: Int): List<ErrorName> = unused()
     override suspend fun errorEvents(siteId: String, query: AnalyticsQuery, errorMessage: String, limit: Int): List<ErrorEvent> = unused()
-    override suspend fun errorTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket, errorMessage: String?): List<ErrorTimePoint> =
+    override suspend fun errorTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket, errorMessage: String): List<ErrorTimePoint> =
         unused()
     override suspend fun goals(siteId: String, query: AnalyticsQuery, page: Int, pageSize: Int): GoalsResponse = unused()
     override suspend fun goalSessions(siteId: String, query: AnalyticsQuery, goalId: Int, page: Int, limit: Int): List<SessionSummary> =

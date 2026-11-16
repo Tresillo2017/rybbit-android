@@ -129,7 +129,11 @@ class RealtimeViewModel(
                 .map { (it.sessions ?: 0).toDouble() }
         }
         mutableState.update { state ->
-            state.copy(trend = series.getOrNull(), trendUnavailable = series.isFailure)
+            // A failed poll keeps the last good trend on screen; the unavailable note shows only when there is none.
+            state.copy(
+                trend = series.getOrNull() ?: state.trend,
+                trendUnavailable = series.isFailure && state.trend == null,
+            )
         }
     }
 

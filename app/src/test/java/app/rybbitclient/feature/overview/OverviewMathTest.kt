@@ -108,7 +108,8 @@ class OverviewMathTest {
     fun `previous range of last 7 days is the 7 days before it`() {
         val previous = previousRangeOf(DateRange.Last7Days, clock, ZoneOffset.UTC)
 
-        assertEquals(DateRange.Custom(LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 9)), previous)
+        // The window is still in progress, so the comparison ends at the same elapsed time of day (12:00 UTC here).
+        assertEquals(DateRange.ElapsedWindow(startMinutesAgo = 19440, endMinutesAgo = 10080), previous)
     }
 
     @Test

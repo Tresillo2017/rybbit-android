@@ -22,6 +22,8 @@ sealed interface PagedUiState<out T> {
         val isRefreshing: Boolean = false,
         val isLoadingMore: Boolean = false,
         val loadMoreError: ApiException? = null,
+        /** A pull-to-refresh that failed. The loaded items stay on screen; the list shows the reason inline. */
+        val refreshError: ApiException? = null,
     ) : PagedUiState<T>
 
     data class Error(val error: ApiException) : PagedUiState<Nothing>

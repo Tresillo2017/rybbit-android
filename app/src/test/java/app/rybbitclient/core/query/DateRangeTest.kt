@@ -30,6 +30,11 @@ class DateRangeTest {
     }
 
     @Test
+    fun `completed windows compare with whole previous days`() {
+        assertEquals(dates("2026-11-14", "2026-11-14"), resolver.previousPeriod(DateRange.Yesterday))
+    }
+
+    @Test
     fun `last 24 hours uses past minutes`() {
         assertEquals(ResolvedRange.PastMinutes(1440, 0), resolver.resolve(DateRange.Last24Hours))
     }
@@ -89,8 +94,10 @@ class DateRangeTest {
 
     @Test
     fun `previous period of a date range is the same length right before it`() {
-        assertEquals(dates("2026-11-03", "2026-11-09"), resolver.previousPeriod(DateRange.Last7Days))
-        assertEquals(dates("2026-11-15", "2026-11-15"), resolver.previousPeriod(DateRange.Today))
+        // The current window ends today, so the previous one is clipped to the same elapsed time of day.
+        assertEquals(ResolvedRange.PastMinutes(19320, 10080), resolver.previousPeriod(DateRange.Last7Days))
+        // Today at 10:00 is compared with yesterday from 00:00 to 10:00.
+        assertEquals(ResolvedRange.PastMinutes(2040, 1440), resolver.previousPeriod(DateRange.Today))
     }
 
     @Test

@@ -51,6 +51,7 @@ private sealed interface ServerDialog {
  * Parameters:
  * - [onBack]: Back navigation.
  * - [onAddInstance]: Open the add-instance flow.
+ * - [onActiveInstanceChanged]: The active server was switched; screens bound to the previous server must close.
  * - [onAllInstancesRemoved]: Called when the last instance is removed; navigate to onboarding.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +59,7 @@ private sealed interface ServerDialog {
 fun SettingsScreen(
     onBack: () -> Unit,
     onAddInstance: () -> Unit,
+    onActiveInstanceChanged: () -> Unit,
     onAllInstancesRemoved: () -> Unit,
 ) {
     val container = LocalAppContainer.current
@@ -87,7 +89,7 @@ fun SettingsScreen(
         val modifier = Modifier.fillMaxSize().padding(padding)
         when (val content = state) {
             SettingsUiState.Loading -> LoadingView(modifier = modifier)
-            is SettingsUiState.Content -> SettingsList(content, modifier, viewModel, onAddInstance)
+            is SettingsUiState.Content -> SettingsList(content, modifier, viewModel, onAddInstance, onActiveInstanceChanged)
         }
     }
 }
@@ -98,10 +100,16 @@ private fun SettingsList(
     modifier: Modifier,
     viewModel: SettingsViewModel,
     onAddInstance: () -> Unit,
+    onActiveInstanceChanged: () -> Unit,
 ) {
     var dialog by remember { mutableStateOf<ServerDialog?>(null) }
     LazyColumn(modifier = modifier) {
-        serverSection(state, onSwitch = viewModel::switchTo, onAction = { dialog = it }, enabled = !state.isWorking)
+        serverSection(
+            state,
+            onSwitch = { id -> viewModel.switchTo(id, onSwitched = onActiveInstanceChanged) },
+            onAction = { dialog = it },
+            enabled = !state.isWorking,
+        )
         item(key = "add-server") {
             ListItem(
                 headlineContent = { Text("Add server") },

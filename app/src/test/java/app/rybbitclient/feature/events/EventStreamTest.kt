@@ -31,7 +31,24 @@ class EventStreamTest {
     }
 
     @Test
-    fun `a page that reports more rows without a cursor does not keep paging`() {
+    fun `a page without oldestCursor pages older rows by timestamp one second past the oldest row`() {
+        // Arrange
+        val page = EventsResponse(
+            data = listOf(Event(type = "pageview", timestamp = "2026-11-16 10:00:00")),
+            cursor = EventCursor(hasMore = true, oldestCursor = null, oldestTimestamp = "2026-11-16 09:59:58.123"),
+        )
+
+        // Act
+        val stream = page.toStream()
+
+        // Assert
+        assertTrue(stream.hasMore)
+        assertEquals(null, stream.nextBeforeCursor)
+        assertEquals("2026-11-16 09:59:59", stream.nextBeforeTimestamp)
+    }
+
+    @Test
+    fun `a page with hasMore but neither cursor nor timestamp has nothing to page with`() {
         // Arrange
         val page = EventsResponse(data = listOf(Event(type = "pageview")), cursor = EventCursor(hasMore = true, oldestCursor = null))
 
@@ -39,6 +56,29 @@ class EventStreamTest {
         val stream = page.toStream()
 
         // Assert
+        assertFalse(stream.hasMore)
+    }
+
+    @Test
+    fun `appending a timestamp page drops the rows of the overlapping boundary second`() {
+        // Arrange
+        val first = EventsResponse(
+            data = listOf(Event(eventName = "a", timestamp = "2026-11-16 10:00:00", sessionId = "s1", type = "pageview", pathname = "/")),
+            cursor = EventCursor(hasMore = true, oldestCursor = null, oldestTimestamp = "2026-11-16 10:00:00"),
+        )
+        val second = EventsResponse(
+            data = listOf(
+                Event(eventName = "a", timestamp = "2026-11-16 10:00:00", sessionId = "s1", type = "pageview", pathname = "/"),
+                Event(eventName = "b", timestamp = "2026-11-16 09:59:00", sessionId = "s2", type = "pageview", pathname = "/x"),
+            ),
+            cursor = EventCursor(hasMore = false, oldestCursor = null, oldestTimestamp = "2026-11-16 09:59:00"),
+        )
+
+        // Act
+        val stream = first.toStream().appended(second)
+
+        // Assert
+        assertEquals(listOf("a", "b"), stream.events.map { it.eventName })
         assertFalse(stream.hasMore)
     }
 

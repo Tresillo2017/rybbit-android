@@ -22,6 +22,12 @@ sealed interface DateRange {
             require(!end.isBefore(start)) { "Custom range end ($end) must not be before start ($start)" }
         }
     }
+
+    /**
+     * A rolling window in minutes before now. Used for comparison periods that must end at the same elapsed
+     * time of day as a window still in progress.
+     */
+    data class ElapsedWindow(val startMinutesAgo: Long, val endMinutesAgo: Long) : DateRange
 }
 
 /** A [DateRange] turned into concrete query boundaries for a specific clock and zone. */

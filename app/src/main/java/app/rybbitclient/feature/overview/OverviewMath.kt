@@ -52,9 +52,15 @@ fun customRangeFromMillis(startMillis: Long, endMillis: Long): DateRange.Custom 
 fun millisOf(date: LocalDate): Long = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
 /** The equal-length window before [range] as a date range. Null when there is none (all time, rolling windows). */
-fun previousRangeOf(range: DateRange, clock: Clock, zone: ZoneId): DateRange.Custom? {
-    val previous = DateRangeResolver(clock, zone).previousPeriod(range) as? ResolvedRange.Dates ?: return null
-    return DateRange.Custom(previous.start, previous.end)
+fun previousRangeOf(range: DateRange, clock: Clock, zone: ZoneId): DateRange? {
+    val resolver = DateRangeResolver(clock, zone)
+    // Rolling and all-time windows get no comparison; only calendar windows do.
+    if (resolver.resolve(range) !is ResolvedRange.Dates) return null
+    return when (val previous = resolver.previousPeriod(range)) {
+        is ResolvedRange.Dates -> DateRange.Custom(previous.start, previous.end)
+        is ResolvedRange.PastMinutes -> DateRange.ElapsedWindow(previous.startMinutesAgo, previous.endMinutesAgo)
+        ResolvedRange.Unbounded, null -> null
+    }
 }
 
 /** Chip text for a custom range, e.g. "3 Nov - 9 Nov". */

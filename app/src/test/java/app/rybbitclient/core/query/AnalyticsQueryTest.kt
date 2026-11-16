@@ -64,8 +64,9 @@ class AnalyticsQueryTest {
             zone = zone,
         )
         val previous = query.previousPeriod(clock)!!
-        assertEquals("2026-11-03", previous["start_date"])
-        assertEquals("2026-11-09", previous["end_date"])
+        // The current week is still in progress (10:00 Madrid), so the comparison window ends at 10:00 too.
+        assertEquals("19320", previous["past_minutes_start"])
+        assertEquals("10080", previous["past_minutes_end"])
         assertTrue(previous.containsKey("filters"))
     }
 

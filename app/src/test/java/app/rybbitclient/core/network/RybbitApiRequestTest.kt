@@ -97,10 +97,28 @@ class RybbitApiRequestTest {
     }
 
     @Test
-    fun `retention sends mode and range`() {
-        val request = capture { retention("1", mode = "week", range = 12) }
+    fun `retention sends mode range and zone`() {
+        val request = capture { retention("1", mode = "week", range = 12, timeZone = "Europe/Madrid") }
         assertEquals("week", parameter(request, "mode"))
         assertEquals("12", parameter(request, "range"))
+        assertEquals("Europe/Madrid", parameter(request, "time_zone"))
+    }
+
+    @Test
+    fun `event properties name the event with the event_name parameter the server expects`() {
+        val request = capture { eventProperties("1", AnalyticsQuery(DateRange.AllTime, zone = zone), "signup") }
+        assertEquals("/api/sites/1/events/properties", request.url.encodedPath)
+        assertEquals("signup", parameter(request, "event_name"))
+        assertEquals(null, parameter(request, "eventName"))
+    }
+
+    @Test
+    fun `events send the legacy before_timestamp bound when given`() {
+        val request = capture {
+            events("1", AnalyticsQuery(DateRange.AllTime, zone = zone), beforeTimestamp = "2026-11-16 10:00:00")
+        }
+        assertEquals("2026-11-16 10:00:00", parameter(request, "before_timestamp"))
+        assertEquals(null, parameter(request, "before_cursor"))
     }
 
     @Test

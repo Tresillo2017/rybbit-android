@@ -3,15 +3,18 @@ package app.rybbitclient.core.auth
 import app.rybbitclient.core.model.CreateApiKeyRequest
 import app.rybbitclient.core.model.Organization
 import app.rybbitclient.core.network.ApiErrorMapper
-import app.rybbitclient.core.network.ApiException
 import app.rybbitclient.core.network.Credential
+import app.rybbitclient.core.network.FeatureUnavailable
+import app.rybbitclient.core.network.Forbidden
 import app.rybbitclient.core.network.HttpClientFactory
 import app.rybbitclient.core.network.InvalidCredentials
 import app.rybbitclient.core.network.InvalidResponse
 import app.rybbitclient.core.network.Network
+import app.rybbitclient.core.network.NotFound
 import app.rybbitclient.core.network.RybbitApi
 import app.rybbitclient.core.network.RybbitJson
-import app.rybbitclient.core.network.Unauthorized
+import app.rybbitclient.core.network.Server
+import java.net.URI
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -57,8 +60,9 @@ class AuthService(
 
     /**
      * Email/password sign-in. Captures the session cookie from `Set-Cookie`, then exchanges it for an
-     * API key. If key creation fails with anything other than 401, the session cookie is kept as the
-     * credential instead. A 401 on key creation means the session is already invalid and is rethrown.
+     * API key. The session cookie is kept as the credential only when the server cannot mint keys for this
+     * account (403, 404 or unsupported route). Other failures, such as a 401, network loss or a 5xx,
+     * are rethrown so the user can retry and receive a long-lived API key.
      *
      * @throws InvalidCredentials when the email or password is rejected.
      * @throws InvalidResponse when sign-in succeeds but no session cookie is returned.
@@ -75,7 +79,7 @@ class AuthService(
 
     private suspend fun signInForSession(baseUrl: String, email: String, password: String): Credential.Session {
         val body = RybbitJson.json.encodeToString(EmailSignInRequest.serializer(), EmailSignInRequest(email, password))
-        val response = httpFactory.create(credential = null, origin = baseUrl).use { postJson(it, "$baseUrl/api/auth/sign-in/email", body) }
+        val response = httpFactory.create(credential = null, origin = originOf(baseUrl)).use { postJson(it, "$baseUrl/api/auth/sign-in/email", body) }
         if (!response.status.isSuccess()) {
             if (isWrongPassword(response)) throw InvalidCredentials(code = parseCode(response.text), serverMessage = null)
             throw ApiErrorMapper.map(response.status.value, response.text, retryAfterHeader = null)
@@ -90,16 +94,21 @@ class AuthService(
         session: Credential.Session,
         deviceName: String,
     ): Credential = try {
-        val created = httpFactory.create(session, origin = baseUrl).use {
+        val created = httpFactory.create(session, origin = originOf(baseUrl)).use {
             RybbitApi(it, baseUrl).createApiKey(keyName(deviceName))
         }
         if (created.key.isBlank()) session else Credential.ApiKey(created.key)
     } catch (cancellation: CancellationException) {
         throw cancellation
-    } catch (rejected: Unauthorized) {
-        throw rejected
-    } catch (failure: ApiException) {
+    } catch (failure: Forbidden) {
         session
+    } catch (failure: NotFound) {
+        session
+    } catch (failure: FeatureUnavailable) {
+        session
+    } catch (failure: Server) {
+        // 501 means an older server that has no key route at all; other 5xx failures are retryable errors.
+        if (failure.status == HTTP_NOT_IMPLEMENTED) session else throw failure
     }
 
     private suspend fun postJson(http: HttpClient, url: String, body: String): RawResponse {
@@ -128,6 +137,12 @@ class AuthService(
         null
     }
 
+    /** Origin is scheme://host[:port]; a sub-path belongs to request paths only. */
+    private fun originOf(baseUrl: String): String {
+        val uri = URI(baseUrl)
+        return "${uri.scheme}://${uri.rawAuthority}"
+    }
+
     /** Key name shown in the Rybbit dashboard, e.g. `Rybbit Android (Pixel 8)`. */
     private fun keyName(deviceName: String): String {
         val label = deviceName.trim().ifEmpty { deviceModel }
@@ -136,6 +151,7 @@ class AuthService(
 
     private companion object {
         const val HTTP_UNAUTHORIZED = 401
+        const val HTTP_NOT_IMPLEMENTED = 501
         const val CODE_INVALID_EMAIL_OR_PASSWORD = "INVALID_EMAIL_OR_PASSWORD"
     }
 }

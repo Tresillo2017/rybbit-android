@@ -78,7 +78,13 @@ interface AnalyticsRepository {
 
     suspend fun sessionLocations(siteId: String, query: AnalyticsQuery): List<SessionLocation>
 
-    suspend fun events(siteId: String, query: AnalyticsQuery, pageSize: Int = DEFAULT_LIMIT, beforeCursor: String? = null): EventsResponse
+    suspend fun events(
+        siteId: String,
+        query: AnalyticsQuery,
+        pageSize: Int = DEFAULT_LIMIT,
+        beforeCursor: String? = null,
+        beforeTimestamp: String? = null,
+    ): EventsResponse
 
     suspend fun eventNames(siteId: String, query: AnalyticsQuery): List<EventName>
 
@@ -90,7 +96,7 @@ interface AnalyticsRepository {
 
     suspend fun errorEvents(siteId: String, query: AnalyticsQuery, errorMessage: String, limit: Int = DEFAULT_LIMIT): List<ErrorEvent>
 
-    suspend fun errorTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket, errorMessage: String? = null): List<ErrorTimePoint>
+    suspend fun errorTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket, errorMessage: String): List<ErrorTimePoint>
 
     suspend fun goals(siteId: String, query: AnalyticsQuery, page: Int = 1, pageSize: Int = DEFAULT_GOALS_PAGE_SIZE): GoalsResponse
 

@@ -96,7 +96,7 @@ internal fun LazyListScope.recentEventsItems(
         RecentEventsHeader(selected = typeFilter, onSelected = onTypeSelected)
     }
     val visible = filterEvents(stream.events, typeFilter)
-    itemsIndexed(visible) { _, event ->
+    itemsIndexed(visible, key = { index, event -> rowKey(index, event) }) { _, event ->
         EventRow(event = event, onClick = eventClick(event, onOpenEvent))
     }
     item(key = "recent-events-footer") {
@@ -145,7 +145,7 @@ private fun StreamFooter(
 ) {
     val error = stream.loadMoreError
     val canAutoLoad = stream.shouldAutoLoad(typeFilter)
-    LaunchedEffect(stream.nextBeforeCursor, canAutoLoad) {
+    LaunchedEffect(stream.nextBeforeCursor, stream.nextBeforeTimestamp, canAutoLoad) {
         if (canAutoLoad) onLoadMore()
     }
     Column(
@@ -187,6 +187,10 @@ private fun FooterNote(message: String) {
         textAlign = TextAlign.Center,
     )
 }
+
+/** Stable LazyColumn key: the index keeps keys unique even when two rows share a second and session. */
+private fun rowKey(index: Int, event: Event): String =
+    listOf(index, event.timestamp, event.sessionId, event.type, event.eventName).joinToString("|")
 
 /** Tapping a named custom event opens its detail. Other rows are not tappable. */
 private fun eventClick(event: Event, onOpenEvent: (String) -> Unit): (() -> Unit)? {

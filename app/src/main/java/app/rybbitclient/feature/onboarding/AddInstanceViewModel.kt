@@ -10,6 +10,7 @@ import app.rybbitclient.core.network.Credential
 import app.rybbitclient.core.network.InvalidUrlException
 import app.rybbitclient.core.network.UrlNormalizer
 import app.rybbitclient.core.storage.InstanceRepository
+import java.io.IOException
 import java.util.UUID
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -155,6 +156,9 @@ class AddInstanceViewModel(
         } catch (error: ApiException) {
             fail(describeAddServerError(error, stage), stage, baseUrl)
         } catch (error: IllegalArgumentException) {
+            fail(SAVE_FAILED, AddServerStage.SignIn, baseUrl)
+        } catch (error: IOException) {
+            // Keystore and DataStore write failures; the form stays editable so the user can retry.
             fail(SAVE_FAILED, AddServerStage.SignIn, baseUrl)
         }
     }

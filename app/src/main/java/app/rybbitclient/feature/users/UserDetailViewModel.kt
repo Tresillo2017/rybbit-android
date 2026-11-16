@@ -52,10 +52,9 @@ class UserDetailViewModel(
 
     /** Pull-to-refresh and retry: reloads the profile, then the first page of sessions. */
     fun refreshAll() {
-        viewModelScope.launch {
-            loadProfile()
-            refresh()
-        }
+        // Both reloads start together: the profile is not waited for before the sessions list starts refreshing.
+        viewModelScope.launch { loadProfile() }
+        refresh()
     }
 
     override suspend fun fetchPage(page: Int): PageResult<SessionSummary> {

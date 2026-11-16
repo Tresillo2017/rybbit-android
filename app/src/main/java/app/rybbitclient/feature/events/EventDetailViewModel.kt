@@ -7,6 +7,7 @@ import app.rybbitclient.core.network.ApiException
 import app.rybbitclient.core.network.FeatureUnavailable
 import app.rybbitclient.core.query.AnalyticsQuery
 import app.rybbitclient.core.query.SiteQueryState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,12 +61,24 @@ class EventDetailViewModel(
         }
     }
 
+    /**
+     * Runs one secondary section of the screen. A failure only empties that section, so a single rejected
+     * sub-request does not replace the whole event detail with an error. Cancellation still propagates.
+     */
+    private suspend fun <T> optionalSection(load: suspend () -> T): T? = try {
+        load()
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (failure: ApiException) {
+        null
+    }
+
     private suspend fun fetchContent(query: AnalyticsQuery): EventDetailUiState.Content = coroutineScope {
         val bucket = query.defaultBucket()
         // Narrowing to sessions that contain the event keeps its own counts exact and makes it more likely to be in the top series.
         val points = async { analytics.eventsTimeSeries(siteId, withEventNameFilter(query, eventName), bucket) }
         val names = async { analytics.eventNames(siteId, query) }
-        val properties = async { analytics.eventProperties(siteId, query, eventName) }
+        val properties = async { optionalSection { analytics.eventProperties(siteId, query, eventName) } }
         val occurrences = async {
             analytics.events(siteId, withEventNameFilter(query, eventName), OCCURRENCE_PAGE_SIZE)
         }
@@ -74,7 +87,7 @@ class EventDetailViewModel(
             totalCount = names.await().firstOrNull { it.eventName == eventName }?.count,
             bucket = bucket,
             points = points.await().filter { it.eventName == eventName },
-            propertyGroups = groupEventProperties(properties.await()),
+            propertyGroups = groupEventProperties(properties.await().orEmpty()),
             occurrences = occurrencesOf(occurrences.await().data, eventName),
         )
     }

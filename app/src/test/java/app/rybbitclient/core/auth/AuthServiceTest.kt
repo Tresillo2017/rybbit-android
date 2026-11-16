@@ -127,7 +127,7 @@ class AuthServiceTest {
         val routes = Routes(
             mapOf(
                 "/api/auth/sign-in/email" to { sessionResponse("other=1", devCookie) },
-                "/api/user/api-keys" to { respondError(HttpStatusCode.InternalServerError) },
+                "/api/user/api-keys" to { respondError(HttpStatusCode.NotFound) },
             ),
         )
         val credential = routes.service().signInWithPassword(BASE_URL, "a@b.c", "pw", "")
@@ -173,7 +173,7 @@ class AuthServiceTest {
     }
 
     @Test
-    fun `key creation network failure falls back to the session`() = runBlocking {
+    fun `key creation network failure is reported instead of storing a session`() = runBlocking {
         var calls = 0
         val engine = MockEngine { request ->
             calls++
@@ -184,7 +184,7 @@ class AuthServiceTest {
             }
         }
         val service = AuthService(HttpClientFactory("RybbitAndroid/test", engine), deviceModel = "Test")
-        assertTrue(service.signInWithPassword(BASE_URL, "a@b.c", "pw", "Phone") is Credential.Session)
+        assertTrue(expectFailure { service.signInWithPassword(BASE_URL, "a@b.c", "pw", "Phone") } is Network)
         assertEquals(2, calls)
     }
 

@@ -103,9 +103,23 @@ private fun <T : Any> LazyListScope.contentItems(
         item(key = "empty") { EmptyView(title = empty.title, message = empty.message) }
     }
     items(items = state.items, key = itemKey) { item -> row(item) }
+    state.refreshError?.let { error ->
+        item(key = "refresh-error") { RefreshFailureNote(error) }
+    }
     if (state.isLoadingMore || state.loadMoreError != null) {
         item(key = "footer") { PagingFooter(state.loadMoreError, onLoadMore) }
     }
+}
+
+/** Shown above the loaded items when a pull-to-refresh failed. Pulling again retries. */
+@Composable
+private fun RefreshFailureNote(error: ApiException) {
+    Text(
+        text = error.toErrorCopy().message,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.fillMaxWidth().padding(Spacing.md).semantics { contentDescription = error.toErrorCopy().message },
+    )
 }
 
 private fun <T : Any> PagedUiState.Content<T>.canLoadMore(): Boolean =

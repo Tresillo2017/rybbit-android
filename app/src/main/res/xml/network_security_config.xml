@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Self-hosted Rybbit instances may live on a LAN over plain HTTP or behind a private CA.
-     Cleartext is allowed (the UI warns when an http:// URL is entered) and user-installed
-     CAs are trusted so self-signed setups work after installing the CA on the device. -->
+     Cleartext is allowed for those hosts (the UI warns when an http:// URL is entered) and user-installed
+     CAs are trusted so self-signed setups work after installing the CA on the device.
+     Rybbit Cloud is the exception: it is reached only over HTTPS with the system trust store, so a
+     user-installed CA cannot read the bearer key or sign-in password. -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
@@ -9,4 +11,10 @@
             <certificates src="user" />
         </trust-anchors>
     </base-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">app.rybbit.io</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
 </network-security-config>

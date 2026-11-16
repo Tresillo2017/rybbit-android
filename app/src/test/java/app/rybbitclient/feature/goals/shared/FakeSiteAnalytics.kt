@@ -74,7 +74,7 @@ class FakeSiteAnalytics(
     override suspend fun sessionDetail(siteId: String, sessionId: String): SessionDetailResponse = unstubbed("sessionDetail")
     override suspend fun sessionLocations(siteId: String, query: AnalyticsQuery): List<SessionLocation> =
         unstubbed("sessionLocations")
-    override suspend fun events(siteId: String, query: AnalyticsQuery, pageSize: Int, beforeCursor: String?): EventsResponse =
+    override suspend fun events(siteId: String, query: AnalyticsQuery, pageSize: Int, beforeCursor: String?, beforeTimestamp: String?): EventsResponse =
         unstubbed("events")
     override suspend fun eventNames(siteId: String, query: AnalyticsQuery): List<EventName> = unstubbed("eventNames")
     override suspend fun eventProperties(siteId: String, query: AnalyticsQuery, eventName: String): List<EventPropertyCount> =
@@ -84,7 +84,7 @@ class FakeSiteAnalytics(
     override suspend fun errorNames(siteId: String, query: AnalyticsQuery, limit: Int): List<ErrorName> = unstubbed("errorNames")
     override suspend fun errorEvents(siteId: String, query: AnalyticsQuery, errorMessage: String, limit: Int): List<ErrorEvent> =
         unstubbed("errorEvents")
-    override suspend fun errorTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket, errorMessage: String?): List<ErrorTimePoint> =
+    override suspend fun errorTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket, errorMessage: String): List<ErrorTimePoint> =
         unstubbed("errorTimeSeries")
     override suspend fun users(siteId: String, query: AnalyticsQuery, page: Int, pageSize: Int): UsersResponse = unstubbed("users")
     override suspend fun userDetail(siteId: String, userId: String): UserDetail = unstubbed("userDetail")

@@ -12,6 +12,7 @@ data class NormalizedBaseUrl(val baseUrl: String, val isInsecure: Boolean)
 object UrlNormalizer {
 
     const val CLOUD_BASE_URL = "https://app.rybbit.io"
+    private const val CLOUD_HOST = "app.rybbit.io"
 
     private const val DEFAULT_SCHEME = "https"
     private const val API_SUFFIX = "/api"
@@ -30,6 +31,9 @@ object UrlNormalizer {
         val scheme = uri.scheme.lowercase()
         if (scheme !in allowedSchemes) throw InvalidUrlException("Only http:// and https:// addresses are supported.")
         val host = uri.host?.lowercase() ?: throw InvalidUrlException("The address is missing a host name.")
+        if (scheme == "http" && host == CLOUD_HOST) {
+            throw InvalidUrlException("Rybbit Cloud is only available over https://.")
+        }
         rejectUnsupportedParts(uri)
         val port = if (uri.port == -1) "" else ":${uri.port}"
         val path = normalizePath(uri.rawPath.orEmpty())

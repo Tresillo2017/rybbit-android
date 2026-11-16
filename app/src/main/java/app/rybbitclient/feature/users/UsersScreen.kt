@@ -84,10 +84,7 @@ fun UsersScreen(
         )
         PagedListBody(
             state = state,
-            empty = EmptyCopy(
-                title = "No users found",
-                message = "No users match this search, filter or date range.",
-            ),
+            empty = usersEmptyCopy(searchText),
             itemKey = { it.userId },
             onRefresh = viewModel::refresh,
             onLoadMore = viewModel::loadMore,
@@ -178,4 +175,17 @@ internal fun userSupportingLine(user: UserSummary): String {
     val browser = browserLabel(user.browser, user.browserVersion).takeIf { it != EMPTY_VALUE }
     val pageviews = user.pageviews?.let { plural(it, "pageview") }
     return listOfNotNull(country, browser, pageviews).joinToString(MIDDOT).ifEmpty { EMPTY_VALUE }
+}
+
+/**
+ * Empty copy for the users list. A search that matches nothing gets its own hint: the server matches the
+ * search term against user IDs only, so clearing it is the next step.
+ */
+internal fun usersEmptyCopy(searchText: String): EmptyCopy = if (searchText.isBlank()) {
+    EmptyCopy(title = "No users found", message = "No users match this filter or date range.")
+} else {
+    EmptyCopy(
+        title = "No users match \"${searchText.trim()}\"",
+        message = "Search looks for this text in user IDs. Clear the search to browse all users in this range.",
+    )
 }

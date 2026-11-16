@@ -20,6 +20,13 @@ import kotlinx.coroutines.launch
 
 private const val PAGE_SIZE = AnalyticsRepository.DEFAULT_LIMIT
 
+/** The server arguments that request one older page. */
+private data class PageToken(val cursor: String?, val timestamp: String?) {
+    val isPresent: Boolean get() = cursor != null || timestamp != null
+}
+
+private fun EventStream.pageToken(): PageToken = PageToken(nextBeforeCursor, nextBeforeTimestamp)
+
 /**
  * ViewModel for the Events tab. Reloads whenever the shared site query changes or [refresh] is called.
  * The recent-events stream pages backwards with the server cursor; type chips filter loaded rows locally.
@@ -55,10 +62,10 @@ class EventsViewModel(
     /** Fetches the next older page of the stream. Does nothing when there is no cursor or a page is already loading. */
     fun loadMore() {
         val content = mutableState.value as? EventsUiState.Content ?: return
-        val cursor = content.stream.nextBeforeCursor ?: return
-        if (content.stream.isLoadingMore) return
+        val token = PageToken(content.stream.nextBeforeCursor, content.stream.nextBeforeTimestamp)
+        if (!token.isPresent || content.stream.isLoadingMore) return
         mutableState.value = content.copy(stream = content.stream.startingLoadMore())
-        loadMoreJob = viewModelScope.launch { fetchNextPage(content.query, cursor) }
+        loadMoreJob = viewModelScope.launch { fetchNextPage(content.query, token) }
     }
 
     private suspend fun load(query: AnalyticsQuery) {
@@ -91,19 +98,19 @@ class EventsViewModel(
         )
     }
 
-    private suspend fun fetchNextPage(query: AnalyticsQuery, cursor: String) {
+    private suspend fun fetchNextPage(query: AnalyticsQuery, token: PageToken) {
         try {
-            val page = analytics.events(siteId, query, PAGE_SIZE, cursor)
-            updateStreamIfCurrent(query, cursor) { stream -> stream.appended(page) }
+            val page = analytics.events(siteId, query, PAGE_SIZE, token.cursor, token.timestamp)
+            updateStreamIfCurrent(query, token) { stream -> stream.appended(page) }
         } catch (error: ApiException) {
-            updateStreamIfCurrent(query, cursor) { stream -> stream.failedLoadMore(error) }
+            updateStreamIfCurrent(query, token) { stream -> stream.failedLoadMore(error) }
         }
     }
 
-    /** Applies a page result only if the screen still shows the same query and cursor (a reload may have replaced it). */
-    private fun updateStreamIfCurrent(query: AnalyticsQuery, cursor: String, transform: (EventStream) -> EventStream) {
+    /** Applies a page result only if the screen still shows the same query and page token (a reload may have replaced it). */
+    private fun updateStreamIfCurrent(query: AnalyticsQuery, token: PageToken, transform: (EventStream) -> EventStream) {
         mutableState.update { state ->
-            if (state is EventsUiState.Content && state.query == query && state.stream.nextBeforeCursor == cursor) {
+            if (state is EventsUiState.Content && state.query == query && state.stream.pageToken() == token) {
                 state.copy(stream = transform(state.stream))
             } else {
                 state

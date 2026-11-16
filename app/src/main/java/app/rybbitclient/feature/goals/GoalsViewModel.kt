@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** Goals per page. Matches the repository default so the server's `totalPages` lines up with it. */
@@ -52,9 +53,10 @@ class GoalsViewModel(
     /** Fetches the next page, if the server reports one and none is already loading. */
     fun loadNextPage() {
         val current = mutableState.value as? GoalsUiState.Content ?: return
-        if (!current.hasMore || current.isLoadingMore) return
+        if (!current.hasMore || current.isLoadingMore || current.isRefreshing) return
         val loading = current.copy(isLoadingMore = true, loadMoreError = null)
         mutableState.value = loading
+        loadJob?.cancel()
         loadJob = viewModelScope.launch { appendPage(loading) }
     }
 
@@ -92,15 +94,23 @@ class GoalsViewModel(
         }
     }
 
-    private suspend fun appendPage(current: GoalsUiState.Content) {
-        val nextPage = current.page + 1
-        mutableState.value = try {
+    /** Merges into the latest state, not the snapshot taken before the request, so a refresh result is never overwritten. */
+    private suspend fun appendPage(requested: GoalsUiState.Content) {
+        val nextPage = requested.page + 1
+        try {
             val response = analytics.goals(siteId, query, page = nextPage, pageSize = GOALS_PAGE_SIZE)
-            current.withPage(response, page = nextPage, pageSize = GOALS_PAGE_SIZE)
+            mutableState.update { latest ->
+                latest.loadingContentFor(requested.page)?.withPage(response, page = nextPage, pageSize = GOALS_PAGE_SIZE) ?: latest
+            }
         } catch (error: ApiException) {
-            current.copy(isLoadingMore = false, loadMoreError = error)
+            mutableState.update { latest ->
+                latest.loadingContentFor(requested.page)?.copy(isLoadingMore = false, loadMoreError = error) ?: latest
+            }
         }
     }
+
+    private fun GoalsUiState.loadingContentFor(page: Int): GoalsUiState.Content? =
+        (this as? GoalsUiState.Content)?.takeIf { it.page == page && it.isLoadingMore }
 
     private companion object {
         const val FIRST_PAGE = 1

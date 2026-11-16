@@ -126,4 +126,15 @@ class UrlNormalizerTest {
             // expected
         }
     }
+
+    @Test
+    fun `cloud host is refused over plain http`() {
+        val failure = runCatching { UrlNormalizer.normalize("http://app.rybbit.io") }.exceptionOrNull()
+        assertTrue(failure is InvalidUrlException)
+    }
+
+    @Test
+    fun `self-hosted host may still use plain http`() {
+        assertEquals("http://192.168.1.10:3001", UrlNormalizer.normalize("http://192.168.1.10:3001").baseUrl)
+    }
 }

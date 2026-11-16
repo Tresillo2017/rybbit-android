@@ -7,6 +7,7 @@ import app.rybbitclient.core.data.Feature
 import app.rybbitclient.core.model.InstanceKind
 import app.rybbitclient.core.network.ApiException
 import app.rybbitclient.core.storage.InstanceRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +28,7 @@ class MoreViewModel(
 
     private val mutableState = MutableStateFlow<MoreUiState>(MoreUiState.Loading)
     val uiState: StateFlow<MoreUiState> = mutableState.asStateFlow()
+    private var loadJob: Job? = null
 
     init {
         load()
@@ -41,7 +43,8 @@ class MoreViewModel(
     }
 
     private fun load() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             mutableState.value = try {
                 loadContent()
             } catch (error: ApiException) {

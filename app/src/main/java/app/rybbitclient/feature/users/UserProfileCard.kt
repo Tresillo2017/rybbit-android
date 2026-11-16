@@ -52,7 +52,7 @@ internal fun userProfileRows(profile: UserDetail, zone: ZoneId): List<HeaderRow>
         HeaderRow("Visitor", userDisplayName(profile.userId, profile.identifiedUserId)),
         HeaderRow("Sessions", profile.sessions?.let { plural(it, "session") } ?: EMPTY_VALUE),
         HeaderRow("Pageviews", profile.pageviews?.let { plural(it, "pageview") } ?: EMPTY_VALUE),
-        HeaderRow("Total time", formatDuration((profile.duration ?: 0).toLong())),
+        HeaderRow("Avg session", formatDuration((profile.duration ?: 0).toLong())),
         HeaderRow("First seen", firstSeen?.let { formatLocalDateTime(it, zone) } ?: EMPTY_VALUE),
         HeaderRow("Last seen", lastSeen?.let { formatLocalDateTime(it, zone) } ?: EMPTY_VALUE),
         HeaderRow(

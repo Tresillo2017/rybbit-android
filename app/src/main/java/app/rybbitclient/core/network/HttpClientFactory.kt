@@ -33,6 +33,9 @@ class HttpClientFactory(
 
     private fun HttpClientConfig<*>.configure(credential: Credential?, origin: String?) {
         expectSuccess = false
+        // A redirect could hand the session cookie or bearer key to another host (an SSO or forward-auth
+        // proxy, for example). Authenticated clients therefore surface 3xx as an error instead of following it.
+        followRedirects = credential == null
         install(ContentNegotiation) { json(RybbitJson.json) }
         install(HttpTimeout) {
             connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS

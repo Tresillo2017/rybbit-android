@@ -188,7 +188,7 @@ class FixtureDecodingTest {
 
     @Test
     fun `error time series fixture decodes wrapped with success flag`() = kotlinx.coroutines.runBlocking {
-        val points = api("errors_timeseries.json").errorTimeSeries("1", query, TimeBucket.Day)
+        val points = api("errors_timeseries.json").errorTimeSeries("1", query, TimeBucket.Day, errorMessage = "Cannot read properties")
         assertEquals("2026-11-01 00:00:00", points.first().time)
         assertEquals(0, points.first().errorCount)
     }

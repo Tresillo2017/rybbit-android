@@ -46,7 +46,7 @@ class OverviewViewModelTest {
     fun `KPIs carry the percent change against the previous period`() = runTest(dispatcher) {
         // Arrange
         val analytics = FakeOverviewAnalytics().apply {
-            overviewHandler = { query -> if (query.range is DateRange.Custom) overviewOf(users = 100) else overviewOf(users = 120) }
+            overviewHandler = { query -> if (query.range.isComparison()) overviewOf(users = 100) else overviewOf(users = 120) }
         }
 
         // Act
@@ -79,7 +79,7 @@ class OverviewViewModelTest {
     fun `a failed previous-period request hides deltas but keeps the KPIs`() = runTest(dispatcher) {
         // Arrange
         val analytics = FakeOverviewAnalytics().apply {
-            overviewHandler = { query -> if (query.range is DateRange.Custom) throw serverError() else overviewOf(users = 50) }
+            overviewHandler = { query -> if (query.range.isComparison()) throw serverError() else overviewOf(users = 50) }
         }
 
         // Act
@@ -286,7 +286,7 @@ class OverviewViewModelTest {
         viewModel.selectPreset("30d")
 
         // Assert
-        assertEquals(DateRange.Last30Days, analytics.overviewQueries.last { it.range !is DateRange.Custom }.range)
+        assertEquals(DateRange.Last30Days, analytics.overviewQueries.last { !it.range.isComparison() }.range)
     }
 
     @Test
@@ -365,3 +365,6 @@ class OverviewViewModelTest {
         const val LIVE_POLL_MILLIS = 30_000L
     }
 }
+
+/** A comparison-period query: a calendar window or an elapsed-minutes window ending before the current one. */
+private fun DateRange.isComparison(): Boolean = this is DateRange.Custom || this is DateRange.ElapsedWindow

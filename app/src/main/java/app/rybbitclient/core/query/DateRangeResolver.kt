@@ -2,6 +2,7 @@ package app.rybbitclient.core.query
 
 import java.time.Clock
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
@@ -31,6 +32,7 @@ class DateRangeResolver(
             DateRange.ThisYear -> dates(today.withDayOfYear(1), today)
             DateRange.AllTime -> ResolvedRange.Unbounded
             is DateRange.Custom -> dates(range.start, range.end)
+            is DateRange.ElapsedWindow -> ResolvedRange.PastMinutes(range.startMinutesAgo, range.endMinutesAgo)
         }
     }
 
@@ -39,11 +41,7 @@ class DateRangeResolver(
      * to compare against (all time).
      */
     fun previousPeriod(range: DateRange): ResolvedRange? = when (val resolved = resolve(range)) {
-        is ResolvedRange.Dates -> {
-            val length = ChronoUnit.DAYS.between(resolved.start, resolved.end) + 1
-            val previousEnd = resolved.start.minusDays(1)
-            dates(previousEnd.minusDays(length - 1), previousEnd)
-        }
+        is ResolvedRange.Dates -> previousDates(resolved)
         is ResolvedRange.PastMinutes -> {
             val span = resolved.startMinutesAgo - resolved.endMinutesAgo
             ResolvedRange.PastMinutes(
@@ -52,6 +50,26 @@ class DateRangeResolver(
             )
         }
         ResolvedRange.Unbounded -> null
+    }
+
+    /**
+     * A window that ends today is still in progress, so its previous period is clipped to the same time of
+     * day: the same number of days, ending at the same elapsed minute. Completed windows compare whole days.
+     */
+    private fun previousDates(current: ResolvedRange.Dates): ResolvedRange {
+        val now = ZonedDateTime.now(clock.withZone(zone))
+        if (current.end != now.toLocalDate()) {
+            val length = ChronoUnit.DAYS.between(current.start, current.end) + 1
+            val previousEnd = current.start.minusDays(1)
+            return dates(previousEnd.minusDays(length - 1), previousEnd)
+        }
+        val days = ChronoUnit.DAYS.between(current.start, current.end) + 1
+        val elapsedToday = ChronoUnit.MINUTES.between(now.toLocalDate().atStartOfDay(zone), now)
+        // Minutes ago: the previous window starts `days` days before the current start and ends at
+        // the same time of day, one day before today (the last `days` days, clipped at `elapsedToday`).
+        val endMinutesAgo = days * MINUTES_PER_DAY
+        val startMinutesAgo = endMinutesAgo + (days - 1) * MINUTES_PER_DAY + elapsedToday
+        return ResolvedRange.PastMinutes(startMinutesAgo = startMinutesAgo, endMinutesAgo = endMinutesAgo)
     }
 
     private fun dates(start: LocalDate, end: LocalDate) = ResolvedRange.Dates(start, end)

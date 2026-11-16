@@ -62,7 +62,7 @@ abstract class PagedListViewModel<T : Any> : ViewModel() {
     protected fun reload() {
         requestJob?.cancel()
         mutableState.update { current ->
-            contentOrNull(current)?.copy(isRefreshing = true, isLoadingMore = false, loadMoreError = null)
+            contentOrNull(current)?.copy(isRefreshing = true, isLoadingMore = false, loadMoreError = null, refreshError = null)
                 ?: PagedUiState.Loading
         }
         requestJob = viewModelScope.launch {
@@ -74,9 +74,15 @@ abstract class PagedListViewModel<T : Any> : ViewModel() {
                     hasMore = first.hasMore,
                 )
             } catch (error: ApiException) {
-                error.toPagedState()
+                refreshFailure(error)
             }
         }
+    }
+
+    /** Keeps loaded items when a refresh fails; only a first load with nothing on screen shows the full-screen error. */
+    private fun refreshFailure(error: ApiException): PagedUiState<T> {
+        val content = contentOrNull(mutableState.value) ?: return error.toPagedState()
+        return content.copy(isRefreshing = false, refreshError = error)
     }
 
     private fun PagedUiState.Content<T>.appended(next: PageResult<T>): PagedUiState.Content<T> = copy(

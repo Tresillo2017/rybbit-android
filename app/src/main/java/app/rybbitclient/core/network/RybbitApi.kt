@@ -49,6 +49,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.serializer
 import java.net.URLEncoder
+import java.time.ZoneId
 
 /**
  * Typed Rybbit API. One method per endpoint the app uses. Every method throws an [ApiException]
@@ -106,15 +107,19 @@ class RybbitApi(
     suspend fun sessionLocations(siteId: String, query: AnalyticsQuery): List<SessionLocation> =
         data(siteId, "sessions/locations", params(query))
 
-    /** Newest first. Pass `cursor.oldestCursor` from the previous page as [beforeCursor] to scroll back. */
+    /**
+     * Newest first. Pass `cursor.oldestCursor` from the previous page as [beforeCursor] to scroll back. Self-hosted
+     * servers may omit `oldestCursor`; then [beforeTimestamp] (legacy, whole-second, UTC) pages older rows instead.
+     */
     suspend fun events(
         siteId: String,
         query: AnalyticsQuery,
         pageSize: Int = DEFAULT_LIMIT,
         beforeCursor: String? = null,
+        beforeTimestamp: String? = null,
     ): EventsResponse = get(
         siteRoute(siteId, "events"),
-        params(query, "page_size" to "$pageSize", "before_cursor" to beforeCursor),
+        params(query, "page_size" to "$pageSize", "before_cursor" to beforeCursor, "before_timestamp" to beforeTimestamp),
         serializer<EventsResponse>(),
     )
 
@@ -122,7 +127,7 @@ class RybbitApi(
         data(siteId, "events/names", params(query))
 
     suspend fun eventProperties(siteId: String, query: AnalyticsQuery, eventName: String): List<EventPropertyCount> =
-        data(siteId, "events/properties", params(query, "eventName" to eventName))
+        data(siteId, "events/properties", params(query, EVENT_NAME_PARAMETER to eventName))
 
     suspend fun eventsTimeSeries(
         siteId: String,
@@ -146,7 +151,7 @@ class RybbitApi(
         siteId: String,
         query: AnalyticsQuery,
         bucket: TimeBucket,
-        errorMessage: String? = null,
+        errorMessage: String,
     ): List<ErrorTimePoint> = data(siteId, "errors/time-series", params(query, "bucket" to bucket.apiValue, "errorMessage" to errorMessage))
 
     suspend fun goals(siteId: String, query: AnalyticsQuery, page: Int = 1, pageSize: Int = DEFAULT_GOALS_PAGE_SIZE): GoalsResponse =
@@ -194,8 +199,13 @@ class RybbitApi(
 
     suspend fun userDetail(siteId: String, userId: String): UserDetail = data(siteId, "users/${seg(userId)}", emptyMap())
 
-    suspend fun retention(siteId: String, mode: String = "day", range: Int = DEFAULT_RETENTION_RANGE): RetentionData =
-        data(siteId, "retention", mapOf("mode" to mode, "range" to "$range"))
+    /** Cohorts are bucketed in [timeZone] (IANA id), so weeks and days match the device's calendar. */
+    suspend fun retention(
+        siteId: String,
+        mode: String = "day",
+        range: Int = DEFAULT_RETENTION_RANGE,
+        timeZone: String = ZoneId.systemDefault().id,
+    ): RetentionData = data(siteId, "retention", mapOf("mode" to mode, "range" to "$range", "time_zone" to timeZone))
 
     suspend fun performanceOverview(siteId: String, query: AnalyticsQuery): PerformanceOverview =
         data(siteId, "performance/overview", params(query))
@@ -281,5 +291,6 @@ class RybbitApi(
         const val DEFAULT_GOALS_PAGE_SIZE = 10
         const val DEFAULT_USERS_PAGE_SIZE = 100
         const val DEFAULT_RETENTION_RANGE = 30
+        const val EVENT_NAME_PARAMETER = "event_name"
     }
 }

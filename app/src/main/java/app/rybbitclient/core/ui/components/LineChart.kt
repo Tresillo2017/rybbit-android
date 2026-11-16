@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -180,14 +181,19 @@ private fun EmptyChartPlaceholder(modifier: Modifier, height: Dp) {
     }
 }
 
-/** Gesture loop: a press or drag scrubs to the nearest index; lifting reports `null`. */
+/**
+ * Gesture loop: a horizontal drag past touch slop scrubs to the nearest index; lifting reports `null`.
+ * Vertical movement is left unconsumed until then, so an enclosing list still scrolls and refreshes when a
+ * touch starts on the chart.
+ */
 private suspend fun PointerInputScope.scrubGestures(
     indexAt: (Float) -> Int,
     onIndex: (Int?) -> Unit,
 ) {
     awaitEachGesture {
-        val down = awaitFirstDown()
-        onIndex(indexAt(down.position.x))
+        val down = awaitFirstDown(requireUnconsumed = false)
+        val slop = awaitHorizontalTouchSlopOrCancellation(down.id) { change, _ -> change.consume() } ?: return@awaitEachGesture
+        onIndex(indexAt(slop.position.x))
         var pressed = true
         while (pressed) {
             val change = awaitPointerEvent().changes.first()

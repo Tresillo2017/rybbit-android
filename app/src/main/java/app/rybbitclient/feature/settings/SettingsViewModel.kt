@@ -9,6 +9,7 @@ import app.rybbitclient.core.storage.InstanceRepository
 import app.rybbitclient.feature.onboarding.AddServerStage
 import app.rybbitclient.feature.onboarding.InstanceAuthenticator
 import app.rybbitclient.feature.onboarding.describeAddServerError
+import java.io.IOException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,8 +63,12 @@ class SettingsViewModel(
     /** Fires after the last server is removed. The screen then leaves for onboarding. */
     val allInstancesRemoved: Flow<Unit> = allRemoved.receiveAsFlow()
 
-    fun switchTo(instanceId: String) {
-        viewModelScope.launch { instances.setActive(instanceId) }
+    /** Makes [instanceId] active, then calls [onSwitched] so the caller can leave screens bound to the old server. */
+    fun switchTo(instanceId: String, onSwitched: () -> Unit = {}) {
+        viewModelScope.launch {
+            instances.setActive(instanceId)
+            onSwitched()
+        }
     }
 
     /** Renames a server. Blank names are ignored; long names are cut to [MAX_DISPLAY_NAME_LENGTH]. */
@@ -80,10 +85,18 @@ class SettingsViewModel(
     fun remove(instanceId: String) {
         viewModelScope.launch {
             operation.update { it.copy(isWorking = true, errorMessage = null) }
-            remover(instanceId)
+            val removed = removeOrReport(instanceId)
             operation.update { it.copy(isWorking = false) }
-            if (instances.instances.first().isEmpty()) allRemoved.trySend(Unit)
+            if (removed && instances.instances.first().isEmpty()) allRemoved.trySend(Unit)
         }
+    }
+
+    private suspend fun removeOrReport(instanceId: String): Boolean = try {
+        remover(instanceId)
+        true
+    } catch (failure: IOException) {
+        failWith("Couldn't remove this server. Try again.")
+        false
     }
 
     /**
@@ -116,6 +129,8 @@ class SettingsViewModel(
         } catch (error: ApiException) {
             failWith(describeAddServerError(error, AddServerStage.SignIn))
         } catch (error: IllegalArgumentException) {
+            failWith("Couldn't save the new key. Try again.")
+        } catch (error: IOException) {
             failWith("Couldn't save the new key. Try again.")
         }
     }

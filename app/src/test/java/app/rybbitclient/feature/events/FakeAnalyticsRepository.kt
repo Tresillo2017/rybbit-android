@@ -57,7 +57,7 @@ internal class FakeAnalyticsRepository : AnalyticsRepository {
 
     override suspend fun isFeatureAvailable(feature: Feature): Boolean = true
 
-    override suspend fun events(siteId: String, query: AnalyticsQuery, pageSize: Int, beforeCursor: String?): EventsResponse {
+    override suspend fun events(siteId: String, query: AnalyticsQuery, pageSize: Int, beforeCursor: String?, beforeTimestamp: String?): EventsResponse {
         failure?.let { throw it }
         eventQueries += query
         eventCursors += beforeCursor
@@ -91,7 +91,7 @@ internal class FakeAnalyticsRepository : AnalyticsRepository {
         return errorEventsResult
     }
 
-    override suspend fun errorTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket, errorMessage: String?): List<ErrorTimePoint> {
+    override suspend fun errorTimeSeries(siteId: String, query: AnalyticsQuery, bucket: TimeBucket, errorMessage: String): List<ErrorTimePoint> {
         failure?.let { throw it }
         return errorTimeSeriesResult
     }

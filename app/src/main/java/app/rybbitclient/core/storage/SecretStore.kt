@@ -3,7 +3,12 @@ package app.rybbitclient.core.storage
 import app.rybbitclient.core.network.Credential
 import app.rybbitclient.core.network.RybbitJson
 import kotlinx.serialization.SerializationException
+import java.io.IOException
 import java.security.GeneralSecurityException
+import java.security.ProviderException
+
+/** The credential could not be encrypted or written. The stored secret is unchanged. */
+class SecretStorageException(cause: Throwable) : IOException("Couldn't store the credential.", cause)
 
 /** The only place credentials are read or written. Keyed by instance id. */
 interface SecretStore {
@@ -41,7 +46,14 @@ class KeystoreSecretStore(
 
     override suspend fun save(instanceId: String, credential: Credential) {
         val json = RybbitJson.json.encodeToString(Credential.serializer(), credential)
-        store.write(keyFor(instanceId), cipher.encrypt(json))
+        val encrypted = try {
+            cipher.encrypt(json)
+        } catch (failure: GeneralSecurityException) {
+            throw SecretStorageException(failure)
+        } catch (failure: ProviderException) {
+            throw SecretStorageException(failure)
+        }
+        store.write(keyFor(instanceId), encrypted)
     }
 
     override suspend fun load(instanceId: String): Credential? {
@@ -49,6 +61,8 @@ class KeystoreSecretStore(
         return try {
             RybbitJson.json.decodeFromString(Credential.serializer(), cipher.decrypt(encoded))
         } catch (unreadable: GeneralSecurityException) {
+            null
+        } catch (unreadable: ProviderException) {
             null
         } catch (unreadable: IllegalArgumentException) {
             null
