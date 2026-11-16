@@ -144,14 +144,23 @@ class AuthService(
     }
 
     /** Key name shown in the Rybbit dashboard, e.g. `Rybbit Android (Pixel 8)`. */
-    private fun keyName(deviceName: String): String {
-        val label = deviceName.trim().ifEmpty { deviceModel }
-        return "Rybbit Android ($label)"
-    }
+    private fun keyName(deviceName: String): String = apiKeyName(deviceName.trim().ifEmpty { deviceModel })
 
     private companion object {
         const val HTTP_UNAUTHORIZED = 401
         const val HTTP_NOT_IMPLEMENTED = 501
         const val CODE_INVALID_EMAIL_OR_PASSWORD = "INVALID_EMAIL_OR_PASSWORD"
     }
+}
+
+/** Rybbit rejects API key names longer than this with 400 "The name length is either too large or too small". */
+internal const val MAX_API_KEY_NAME_LENGTH = 32
+private const val KEY_NAME_PREFIX = "Rybbit Android ("
+private const val KEY_NAME_SUFFIX = ")"
+
+/** Key name shown in the user's Rybbit key list, e.g. "Rybbit Android (Pixel 8)", capped at [MAX_API_KEY_NAME_LENGTH]. */
+internal fun apiKeyName(deviceLabel: String): String {
+    val room = MAX_API_KEY_NAME_LENGTH - KEY_NAME_PREFIX.length - KEY_NAME_SUFFIX.length
+    val label = deviceLabel.trim().take(room).trimEnd().ifEmpty { "device" }
+    return KEY_NAME_PREFIX + label + KEY_NAME_SUFFIX
 }
