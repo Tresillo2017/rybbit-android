@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simple bar-chart glyph inside the adaptive icon safe zone (centre 66dp of 108dp). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF" android:pathData="M34,70h8v-14h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M46,70h8v-26h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M58,70h8v-20h-8z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M70,70h4v-34h-4z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M32,74h44v3h-44z" />
+</vector>

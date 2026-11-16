@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Self-hosted Rybbit instances may live on a LAN over plain HTTP or behind a private CA.
+     Cleartext is allowed (the UI warns when an http:// URL is entered) and user-installed
+     CAs are trusted so self-signed setups work after installing the CA on the device. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

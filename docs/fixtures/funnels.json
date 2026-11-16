@@ -1,0 +1,1 @@
+{"data":[{"id":1,"name":"Signup funnel","steps":[{"name":"Home","type":"page","value":"/"},{"name":"Pricing","type":"page","value":"/pricing"},{"name":"Signup","type":"page","value":"/signup"}],"configuration":{},"createdAt":"2026-11-16 08:43:20.383811","updatedAt":"2026-11-16 08:43:20.383811","conversionRate":null,"totalVisitors":null}]}

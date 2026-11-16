@@ -1,0 +1,1 @@
+{"error":"Unauthorized","code":"AUTHENTICATION_REQUIRED","message":"Unauthorized","resolution":"Send a valid API key in the Authorization header as a Bearer token."}

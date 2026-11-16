@@ -1,0 +1,1 @@
+{"error":"No API route matches GET /api/sites/1/pages.","code":"API_ROUTE_NOT_FOUND","message":"No API route matches GET /api/sites/1/pages.","resolution":"Read https://rybbit.com/openapi.json and choose a documented operation.","details":{"method":"GET","path":"/api/sites/1/pages"}}
