@@ -1,0 +1,57 @@
+name: Self-hosted compatibility
+description: The app misbehaves against a specific self-hosted Rybbit version or setup
+title: "[Compat]: "
+labels: ["self-hosted", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Self-hosted servers vary by version and reverse-proxy setup. Details help us reproduce the problem.
+        **Never paste credentials.**
+  - type: input
+    id: server-version
+    attributes:
+      label: Rybbit server version / image tag
+      placeholder: "ghcr.io/rybbit-io/rybbit-backend:v2.8.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: proxy
+    attributes:
+      label: Reverse proxy
+      options:
+        - Built-in Caddy (setup.sh)
+        - Nginx
+        - Nginx Proxy Manager
+        - Traefik
+        - Cloudflare Tunnel / proxy
+        - Other
+        - None (direct)
+    validations:
+      required: true
+  - type: dropdown
+    id: scheme
+    attributes:
+      label: How is the server reached?
+      options:
+        - https with a public certificate
+        - https with a self-signed / private CA
+        - plain http (LAN)
+  - type: input
+    id: path
+    attributes:
+      label: Sub-path (if any)
+      placeholder: "https://example.com/rybbit"
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Which screen, and the exact error message shown.
+    validations:
+      required: true
+  - type: textarea
+    id: response
+    attributes:
+      label: Raw API response (optional, redacted)
+      description: "e.g. `curl -H 'Authorization: Bearer ***' https://your-server/api/sites/1/overview`"
+      render: json

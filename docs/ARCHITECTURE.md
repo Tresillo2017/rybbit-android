@@ -14,8 +14,8 @@ Build: `JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 
 `docs/fixtures/*.json` are **real responses** captured from a self-hosted Rybbit (v2.x, Nov 2026) for
 site 1 with `start_date=2026-11-01&end_date=2026-11-30&time_zone=Europe/Madrid`. Model DTOs on them.
-`docs/api-subset.md` is the official docs for the endpoints we use (fields/params); `docs/openapi.json`
-lists every route. When docs and fixtures disagree, fixtures win.
+The official API reference is at <https://rybbit.com/docs/api/getting-started> (fields/params) and
+<https://rybbit.com/openapi.json> (every route). When docs and fixtures disagree, fixtures win.
 
 ### Authentication
 * **API key** (primary): `Authorization: Bearer <key>`. Works on cloud and self-hosted. Personal or org key.

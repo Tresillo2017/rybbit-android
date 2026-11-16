@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest an idea or a missing Rybbit feature
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      placeholder: "I check my sites every morning and want…"
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should it look or behave? Mockups are welcome.
+    validations:
+      required: true
+  - type: dropdown
+    id: availability
+    attributes:
+      label: Where does this feature exist in Rybbit?
+      options:
+        - Rybbit Cloud and self-hosted
+        - Rybbit Cloud only
+        - Not in Rybbit (app-only idea)
+        - Not sure
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

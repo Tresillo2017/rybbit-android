@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Tresillo2017/rybbit-android/security/advisories/new
+    about: Report security issues privately, please.
+  - name: Rybbit server or dashboard issue
+    url: https://github.com/rybbit-io/rybbit/issues
+    about: Problems with Rybbit itself (tracking, server, web dashboard) belong in the Rybbit repo.
+  - name: Rybbit documentation
+    url: https://rybbit.com/docs
+    about: Self-hosting guides and API reference.

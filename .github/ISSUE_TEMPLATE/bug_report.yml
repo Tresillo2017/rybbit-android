@@ -1,0 +1,70 @@
+name: Bug report
+description: Something in the app doesn't work as expected
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please **never paste API keys, passwords or session cookies** here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+      placeholder: "Opening the Sessions tab on my self-hosted server shows 'Unexpected response'…"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add server …
+        2. Open site …
+        3. Tap …
+    validations:
+      required: true
+  - type: dropdown
+    id: server-type
+    attributes:
+      label: Server type
+      options:
+        - Rybbit Cloud
+        - Self-hosted
+    validations:
+      required: true
+  - type: input
+    id: server-version
+    attributes:
+      label: Rybbit server version (self-hosted)
+      description: Docker image tag or commit, if known.
+      placeholder: "v2.8.0"
+  - type: dropdown
+    id: auth
+    attributes:
+      label: Sign-in method
+      options:
+        - API key
+        - Email & password
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Settings → About.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      placeholder: "Pixel 8, Android 16"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots or logs
+      description: Redact server addresses if they're private. Remove any credentials.
+      render: shell
