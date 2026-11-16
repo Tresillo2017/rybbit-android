@@ -165,8 +165,6 @@ private class FakeAnalytics(
     override suspend fun liveUserCount(siteId: String, minutes: Int): Int = unused()
     override suspend fun sessions(siteId: String, query: AnalyticsQuery, page: Int, limit: Int): List<SessionSummary> = unused()
     override suspend fun sessionDetail(siteId: String, sessionId: String): SessionDetailResponse = unused()
-    override suspend fun sessionEventsPage(siteId: String, sessionId: String, offset: Int, limit: Int): SessionDetailResponse = unused()
-    override suspend fun userSessions(siteId: String, query: AnalyticsQuery, userId: String, page: Int, limit: Int): List<SessionSummary> = unused()
     override suspend fun sessionLocations(siteId: String, query: AnalyticsQuery): List<SessionLocation> = unused()
     override suspend fun events(siteId: String, query: AnalyticsQuery, pageSize: Int, beforeCursor: String?): EventsResponse = unused()
     override suspend fun eventNames(siteId: String, query: AnalyticsQuery): List<EventName> = unused()
@@ -179,14 +177,6 @@ private class FakeAnalytics(
     override suspend fun goalSessions(siteId: String, query: AnalyticsQuery, goalId: Int, page: Int, limit: Int): List<SessionSummary> = unused()
     override suspend fun analyzeFunnel(siteId: String, query: AnalyticsQuery, steps: List<FunnelStep>): List<FunnelStepResult> = unused()
     override suspend fun users(siteId: String, query: AnalyticsQuery, page: Int, pageSize: Int): UsersResponse = unused()
-    override suspend fun usersFiltered(
-        siteId: String,
-        query: AnalyticsQuery,
-        page: Int,
-        pageSize: Int,
-        identifiedOnly: Boolean,
-        search: String?,
-    ): UsersResponse = unused()
     override suspend fun userDetail(siteId: String, userId: String): UserDetail = unused()
     override suspend fun retention(siteId: String, mode: String, range: Int): RetentionData = unused()
     override suspend fun performanceOverview(siteId: String, query: AnalyticsQuery): PerformanceOverview = unused()

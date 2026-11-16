@@ -133,6 +133,32 @@ class UserDetailViewModelTest {
         assertEquals(listOf(1, 2), analytics.userSessionRequests.map { it.page })
     }
 
+    @Test
+    fun `identified users are listed by their identified ID, not the device ID`() = runTest(dispatcher) {
+        // Arrange
+        analytics.userDetailResult = { UserDetail(userId = "device-1", identifiedUserId = "ada@example.com") }
+        analytics.userSessionsPage = { emptyList() }
+
+        // Act
+        UserDetailViewModel(SITE_ID, "device-1", analytics, query)
+
+        // Assert
+        assertEquals("ada@example.com", analytics.userSessionRequests.last().userId)
+    }
+
+    @Test
+    fun `anonymous users keep the device ID for their sessions`() = runTest(dispatcher) {
+        // Arrange
+        analytics.userDetailResult = { UserDetail(userId = "device-1", identifiedUserId = "") }
+        analytics.userSessionsPage = { emptyList() }
+
+        // Act
+        UserDetailViewModel(SITE_ID, "device-1", analytics, query)
+
+        // Assert
+        assertEquals("device-1", analytics.userSessionRequests.last().userId)
+    }
+
     private companion object {
         const val SITE_ID = "1"
         const val USER_ID = "user-1"
