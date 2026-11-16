@@ -17,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,14 +29,18 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import app.rybbitclient.di.LocalAppContainer
 
 /**
  * Chrome for one site: a top bar (name, site switcher, overflow to Settings), the five-tab bottom bar,
  * and an inner NavHost that holds the tab screens. The tab state lives in [SiteTabHost].
+ * Entering a site notifies [app.rybbitclient.core.query.SiteQueryState] so filters reset on a site change.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SiteScaffold(siteId: String, siteName: String, navigator: AppNavigator) {
+    val siteQueryState = LocalAppContainer.current.siteQueryState
+    LaunchedEffect(siteId) { siteQueryState.onSiteOpened(siteId) }
     val tabController = rememberNavController()
     val currentDestination = tabController.currentBackStackEntryAsState().value?.destination
 
